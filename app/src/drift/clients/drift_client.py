@@ -1,22 +1,35 @@
+import traceback
+
 from anchorpy import Wallet
 from driftpy.drift_client import DriftClient
 from driftpy.keypair import load_keypair
 from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair  # type: ignore
 
+import app.src.loader.env_vars as env_vars
 from app.constants.common import DriftEnv
 from app.constants.networks import NetworkConstants
-from app.src.loader.env_vars import SOLANA_DEVNET_RPC_URL, SOLANA_MAINNET_RPC_URL
+
+SOLANA_DEVNET_RPC_URL = env_vars.SOLANA_DEVNET_RPC_URL
+SOLANA_MAINNET_RPC_URL = env_vars.SOLANA_MAINNET_RPC_URL
 
 
-class DriftClientStrategy:
-    def __init__(self, chain_type):
+class DriftClientEnvChainType:
+    DEVNET = "devnet"
+    MAINNET = "mainnet"
+
+
+class DriftClientManager:
+    def __init__(self, chain_type: DriftEnv):
         self.chain_type = chain_type
         self.network_constants = NetworkConstants()
         self.validate_chain_type()
 
     def validate_chain_type(self) -> None:
-        if self.chain_type not in DriftEnv:
+        if self.chain_type not in [
+            DriftClientEnvChainType.DEVNET,
+            DriftClientEnvChainType.MAINNET,
+        ]:
             raise ValueError(f"Invalid chain type for drift client: {self.chain_type}")
 
     def get_user_keypair(self, private_key: str) -> Keypair:
@@ -37,16 +50,19 @@ class DriftClientStrategy:
         else:
             raise ValueError(f"Invalid chain type for drift client: {self.chain_type}")
 
-    async def get_drift_client(self) -> DriftClient:
+    def get_drift_client(self) -> DriftClient:
         try:
+            connection = self.get_rpc_connection_client()
+            wallet = self.get_dummy_wallet()
             drift_client = DriftClient(
-                connection=self.get_rpc_connection_client(),
-                wallet=self.get_dummy_wallet(),
+                connection=connection,
+                wallet=wallet,
                 env=self.chain_type,
             )
-            await drift_client.subscribe()
-            print("Subscribed to drift client")
             return drift_client
         except Exception as e:
             print(f"Error in getting drift client: {e}")
             return None
+
+    async def subscribe(self, drift_client: DriftClient) -> None:
+        await drift_client.subscribe()
