@@ -9,4 +9,4 @@ export LOG_LEVEL=${LOG_LEVEL:-warning}
 current_timestamp="$(date "+%Y-%m-%d %H:%M:%S")"
 echo "Running script at $current_timestamp"
 
-exec ddtrace-run gunicorn main:app --workers $WORKERS --worker-class uvicorn.workers.UvicornWorker --bind $HOST:$PORT --timeout $TIMEOUT --log-level $LOG_LEVEL
+exec gunicorn main:app --workers $WORKERS --worker-class uvicorn.workers.UvicornWorker --bind $HOST:$PORT --timeout $TIMEOUT --log-level $LOG_LEVEL
