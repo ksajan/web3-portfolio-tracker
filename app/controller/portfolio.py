@@ -3,15 +3,20 @@ from typing import Any, Dict, List
 from driftpy.drift_client import DriftClient
 from fastapi import HTTPException
 
-from app.src.drift.strategy.user_portfolio import UserPortfolio
-from app.src.init.service_init import devnet_drift_client, mainnet_drift_client
+from app.handler.portfolio import Positions
 
 
 async def get_all_positions(
     wallet_address: str, drift_client: DriftClient
 ) -> List[Dict[str, Any]]:
-    # user_portfolio = await UserPortfolio.create(wallet_address, drift_client)
-    # return user_portfolio.get_user_all_perpetual_positions(
-    #     user_portfolio.drift_user_client_manager
-    # )
-    pass
+    try:
+        position_object = Positions(
+            wallet_address=wallet_address, drift_client=drift_client
+        )
+        await position_object.initialize_user_portfolio()
+        all_positions = await position_object.get_all_perp_psoitions()
+        if all_positions is None:
+            raise HTTPException(status_code=404, detail="No positions found")
+        return all_positions
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error in getting positions: {e}")

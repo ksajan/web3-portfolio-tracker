@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class PerpPosition:
+class CustomPerpPosition:
     last_cumulative_funding_rate: int
     base_asset_amount: int
     quote_asset_amount: int
@@ -16,8 +16,11 @@ class PerpPosition:
     last_quote_asset_amount_per_lp: int
     remainder_base_asset_amount: int
     market_index: int
+    symbol: str
     open_orders: int
     per_lp_base: int
+    current_price: float
+    liquidation_price: float
 
 
 @dataclass
@@ -30,10 +33,10 @@ class ResponsePerpPosition:
     notional_usd: float  # 4521.0,  # notional amount in USD
     notional_base: float  # 30.0,  # notional amount in base currency
     liquidation_price: float  # 180.6
+    symbol: str
     category: str = "exposure"
     type: str = "perp"
     chain: str = "Solana"  # blockchain
     platform: str = "Drift"
-    symbol: str = "SOL-PERP"
     side: str = "short"  # short or long
     comment: str = "Drift perp position"

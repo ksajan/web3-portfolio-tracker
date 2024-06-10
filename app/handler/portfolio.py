@@ -1,49 +1,56 @@
 from typing import List
 
-from app.constants.drift_constants import drift_perp_markets
-from app.models.positions import PerpPosition, ResponsePerpPosition
+from driftpy.drift_client import DriftClient
+from fastapi import HTTPException
+
+from app.models.positions import CustomPerpPosition, ResponsePerpPosition
 from app.src.drift.strategy.user_portfolio import UserPortfolio
-from app.src.init.service_init import devnet_drift_client, mainnet_drift_client
 
 
 class Positions:
-    def __init__(self, chain_type: str, wallet_address: str):
+    def __init__(self, wallet_address: str, drift_client: DriftClient):
         self.positions = []
-        self.chain_type = chain_type
         self.wallet_address = wallet_address
+        self.drift_client = drift_client
 
-    def initialize_user_portfolio(self):
-        drift_client = (
-            mainnet_drift_client
-            if self.chain_type == "mainnet"
-            else devnet_drift_client
-        )
-        if drift_client is None:
+    async def initialize_user_portfolio(self):
+        if self.drift_client is None:
             raise HTTPException(
                 status_code=500, detail="Drift client is not initialized"
             )
-        self.user_portfolio = UserPortfolio.create(self.wallet_address, drift_client)
+        self.user_portfolio = await UserPortfolio.create(
+            self.wallet_address, self.drift_client
+        )
 
     def get_perp_markets(self):
         perp_markets = self.user_portfolio.get_all_markets()
         return perp_markets
 
-    def get_all_perp_psoitions(self) -> List[ResponsePerpPosition]:
-        perp_positions = self.user_portfolio.get_user_all_perpetual_positions(
-            self.user_portfolio.drift_user_client_manager
-        )
+    def _populate_response_perp_positions(
+        self, perp_positions: List[CustomPerpPosition]
+    ) -> List[ResponsePerpPosition]:
+        response_perp_positions = []
         for perp_position in perp_positions:
-            self.positions.append(
-                ResponsePerpPosition(
-                    id=perp_position.market_index,
-                    account=self.wallet_address,
-                    price=perp_position.quote_entry_amount,
-                    margin_usd=perp_position.quote_entry_amount,
-                    margin_base=perp_position.base_asset_amount,
-                    notional_usd=perp_position.quote_entry_amount,
-                    notional_base=perp_position.base_asset_amount,
-                    liquidation_price=perp_position.quote_break_even_amount,
-                    symbol=drift_perp_markets[perp_position.market_index],
-                    side="short" if perp_position.base_asset_amount < 0 else "long",
-                )
+            response_perp_position = ResponsePerpPosition(
+                id=perp_position.market_index,
+                account=self.wallet_address,
+                price=perp_position.current_price,
+                margin_usd=0.0,
+                margin_base=0.0,
+                notional_usd=abs(perp_position.base_asset_amount)
+                * perp_position.current_price,
+                notional_base=abs(perp_position.base_asset_amount),
+                liquidation_price=perp_position.liquidation_price,
+                category="exposure",
+                type="perp",
+                symbol=perp_position.symbol,
             )
+            response_perp_positions.append(response_perp_position)
+        return response_perp_positions
+
+    async def get_all_perp_psoitions(self) -> List[ResponsePerpPosition]:
+        perp_positions = await self.user_portfolio.get_user_all_perpetual_positions()
+        if perp_positions is not None:
+            response = self._populate_response_perp_positions(perp_positions)
+            return response
+        return []
