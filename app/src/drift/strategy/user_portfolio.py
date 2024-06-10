@@ -53,7 +53,7 @@ class UserPortfolio:
         )
 
     def get_all_markets(self) -> List:
-        return self.drift_user_client_manager.get_user_account().perp_positions
+        return self.drift_user_client_manager_object.get_user_account().perp_positions
 
     async def get_user_all_perpetual_positions(self):
         try:
