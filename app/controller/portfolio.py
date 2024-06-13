@@ -14,7 +14,7 @@ async def get_all_positions(
             wallet_address=wallet_address, drift_client=drift_client
         )
         await position_object.initialize_user_portfolio()
-        all_positions = await position_object.get_all_perp_psoitions()
+        all_positions = await position_object.get_all_positions()
         if all_positions is None:
             raise HTTPException(status_code=404, detail="No positions found")
         return all_positions

@@ -4,9 +4,13 @@ from driftpy.constants.numeric_constants import PRICE_PRECISION
 from driftpy.drift_client import DriftClient
 from driftpy.drift_user import BASE_PRECISION, QUOTE_PRECISION, DriftUser
 from driftpy.drift_user_stats import DriftUserStats
-from driftpy.types import PerpPosition
+from driftpy.types import PerpPosition, SpotPosition
 
-from app.models.positions import CustomPerpPosition, ResponsePerpPosition
+from app.models.drift_position import (
+    CustomPerpPosition,
+    CustomSpotPosition,
+    CustomUnrealizedPnLPosition,
+)
 from app.src.drift.clients.user_client import (
     DriftUserAccountStatsClientManager,
     DriftUserClientManager,
@@ -14,6 +18,7 @@ from app.src.drift.clients.user_client import (
 from app.src.drift.strategy.drift_strategy import DriftStrategy
 from app.src.drift.utils.helper import (
     convert_perp_position_to_response_perp_position,
+    convert_spot_position_to_custom_spot_position,
     filter_fields_for_dataclass,
     update_fields,
 )
@@ -73,7 +78,7 @@ class UserPortfolio:
     def get_all_markets(self) -> List:
         return self.drift_user_client_manager_object.get_user_account().perp_positions
 
-    def get_perp_position_market_price(
+    def get_market_price(
         self, market_index: int, drift_user_client: DriftUser, market_type: str = "PERP"
     ) -> float:
         match market_type:
@@ -92,13 +97,31 @@ class UserPortfolio:
                     / PRICE_PRECISION
                 )
 
-    def get_perp_position_liquidation_price(
-        self, market_index: int, drift_user_client: DriftUser
+    def get_position_liquidation_price(
+        self, market_index: int, drift_user_client: DriftUser, market_type: str = "PERP"
     ) -> float:
-        liqudation_price = drift_user_client.get_perp_liq_price(market_index)
-        if liqudation_price == -1:
-            return 0
-        return liqudation_price / PRICE_PRECISION
+        match market_type:
+            case "PERP":
+                liqudation_price = drift_user_client.get_perp_liq_price(market_index)
+                print(
+                    f"for market index {market_index} liquidation price is {liqudation_price} and market type is {market_type}"
+                )
+                if (
+                    liqudation_price == -1
+                    or liqudation_price == 0
+                    or liqudation_price is None
+                ):
+                    return 0
+                return liqudation_price / PRICE_PRECISION
+            case "SPOT":
+                liqudation_price = drift_user_client.get_spot_liq_price(market_index)
+                if (
+                    liqudation_price == -1
+                    or liqudation_price == 0
+                    or liqudation_price is None
+                ):
+                    return 0
+                return liqudation_price / PRICE_PRECISION
 
     def transform_perp_position_values(self, perp_position: PerpPosition):
         update_fields(
@@ -146,7 +169,7 @@ class UserPortfolio:
             perp_position, "settled_pnl", perp_position.settled_pnl / PRICE_PRECISION
         )
 
-    async def get_user_all_perpetual_positions(
+    async def get_user_perpetual_positions(
         self,
     ) -> Optional[List[CustomPerpPosition]]:
         try:
@@ -160,6 +183,7 @@ class UserPortfolio:
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
                     )
+                    await drift_user_client.subscribe()
                     if self.current_market_data is None:
                         return None
                     else:
@@ -173,14 +197,14 @@ class UserPortfolio:
                                 continue
                             self.transform_perp_position_values(perp_position)
                             data_to_add = {
-                                "current_price": self.get_perp_position_market_price(
-                                    marketIndex, drift_user_client
+                                "current_price": self.get_market_price(
+                                    marketIndex, drift_user_client, "PERP"
                                 ),
                                 "symbol": self.current_market_data.get("perp").get(
                                     marketIndex
                                 ),
-                                "liquidation_price": self.get_perp_position_liquidation_price(
-                                    marketIndex, drift_user_client
+                                "liquidation_price": self.get_position_liquidation_price(
+                                    marketIndex, drift_user_client, "PERP"
                                 ),
                             }
                             perp_position_transformed = (
@@ -198,4 +222,143 @@ class UserPortfolio:
 
         except Exception as e:
             print(f"Error in getting user positions: {e}")
+            return None
+
+    def transform_spot_position_values(self, spot_position: SpotPosition):
+        update_fields(
+            spot_position,
+            "scaled_balance",
+            spot_position.scaled_balance / BASE_PRECISION,
+        )
+        update_fields(
+            spot_position,
+            "cumulative_deposits",
+            spot_position.cumulative_deposits / BASE_PRECISION,
+        )
+        update_fields(
+            spot_position, "open_bids", spot_position.open_bids / BASE_PRECISION
+        )
+        update_fields(
+            spot_position, "open_asks", spot_position.open_asks / BASE_PRECISION
+        )
+
+    # def get_spot_position_liquidation_price(
+    #     self, market_index: int, drift_user_client: DriftUser
+    # ) -> float:
+    #     liqudation_price = drift_user_client.get_spot_liq_price(market_index)
+    #     if liqudation_price == -1:
+    #         return 0
+    #     return liqudation_price
+
+    async def get_user_spot_positions(self) -> Optional[List[CustomSpotPosition]]:
+        try:
+            if self.current_market_data is None:
+                await self.get_current_market_data()
+            response = []
+            total_sub_accounts = self.get_user_total_sub_accounts()
+            if total_sub_accounts is not None and total_sub_accounts > 0:
+                for sub_account_id in range(total_sub_accounts):
+                    spot_positions = []
+                    drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
+                        sub_account_id
+                    )
+                    if self.current_market_data is None or drift_user_client is None:
+                        return None
+                    else:
+                        for marketIndex in range(
+                            len(self.current_market_data.get("spot").keys())
+                        ):
+                            spot_position = drift_user_client.get_spot_position(
+                                marketIndex
+                            )
+                            if spot_position is None:
+                                continue
+                            self.transform_spot_position_values(spot_position)
+                            data_to_add = {
+                                "current_price": self.get_market_price(
+                                    marketIndex, drift_user_client, "SPOT"
+                                ),
+                                "symbol": self.current_market_data.get("spot").get(
+                                    marketIndex
+                                ),
+                                "liquidation_price": self.get_position_liquidation_price(
+                                    marketIndex, drift_user_client, "SPOT"
+                                ),
+                                "category": "both",
+                            }
+                            spot_position = (
+                                convert_spot_position_to_custom_spot_position(
+                                    spot_position=spot_position,
+                                    data=data_to_add,
+                                )
+                            )
+                            spot_positions.append(spot_position.__dict__)
+
+                    response.extend(spot_positions)
+                filtered_data = filter_fields_for_dataclass(
+                    response, CustomSpotPosition
+                )
+                if filtered_data is None:
+                    raise Exception("Error in filtering fields for dataclass")
+                return filtered_data
+
+        except Exception as e:
+            print(f"Error in getting user positions: {e}")
+            return None
+
+    async def get_user_unrealized_pnl(self) -> Optional[CustomUnrealizedPnLPosition]:
+        try:
+            if self.current_market_data is None:
+                await self.get_current_market_data()
+            response = []
+            total_sub_accounts = self.get_user_total_sub_accounts()
+            if total_sub_accounts is not None and total_sub_accounts > 0:
+                for sub_account_id in range(total_sub_accounts):
+                    unrealized_pnl = 0
+                    drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
+                        sub_account_id
+                    )
+                    if drift_user_client is None or self.current_market_data is None:
+                        continue
+                    else:
+                        for marketIndex in range(
+                            len(self.current_market_data.get("perp").keys())
+                        ):
+                            unrealized_pnl = drift_user_client.get_unrealized_pnl(
+                                market_index=marketIndex
+                            )
+                            if unrealized_pnl is None:
+                                continue
+                            custom_unrealized_pnl = CustomUnrealizedPnLPosition(
+                                pnl=unrealized_pnl / PRICE_PRECISION,
+                                symbol=self.current_market_data.get("perp").get(
+                                    marketIndex
+                                ),
+                                type="perp",
+                                market_index=marketIndex,
+                            )
+                            response.append(custom_unrealized_pnl.__dict__)
+                        for marketIndex in range(
+                            len(self.current_market_data.get("spot").keys())
+                        ):
+                            unrealized_pnl = drift_user_client.get_unrealized_pnl(
+                                market_index=marketIndex
+                            )
+                            if unrealized_pnl is None:
+                                continue
+                            custom_unrealized_pnl = CustomUnrealizedPnLPosition(
+                                pnl=unrealized_pnl / PRICE_PRECISION,
+                                symbol=self.current_market_data.get("spot").get(
+                                    marketIndex
+                                ),
+                                type="spot",
+                                market_index=marketIndex,
+                            )
+                            response.append(custom_unrealized_pnl.__dict__)
+                filtered_data = filter_fields_for_dataclass(
+                    response, CustomUnrealizedPnLPosition
+                )
+                return filtered_data
+        except Exception as e:
+            print(f"Error in getting unrealized pnl: {e}")
             return None
