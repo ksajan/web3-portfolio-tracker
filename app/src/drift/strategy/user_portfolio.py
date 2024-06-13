@@ -103,9 +103,6 @@ class UserPortfolio:
         match market_type:
             case "PERP":
                 liqudation_price = drift_user_client.get_perp_liq_price(market_index)
-                print(
-                    f"for market index {market_index} liquidation price is {liqudation_price} and market type is {market_type}"
-                )
                 if (
                     liqudation_price == -1
                     or liqudation_price == 0
@@ -183,19 +180,18 @@ class UserPortfolio:
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
                     )
-                    await drift_user_client.subscribe()
                     if self.current_market_data is None:
                         return None
                     else:
                         for marketIndex in range(
                             len(self.current_market_data.get("perp").keys())
                         ):
+
                             perp_position = drift_user_client.get_perp_position(
                                 marketIndex
                             )
                             if perp_position is None:
                                 continue
-                            self.transform_perp_position_values(perp_position)
                             data_to_add = {
                                 "current_price": self.get_market_price(
                                     marketIndex, drift_user_client, "PERP"
@@ -207,6 +203,7 @@ class UserPortfolio:
                                     marketIndex, drift_user_client, "PERP"
                                 ),
                             }
+                            self.transform_perp_position_values(perp_position)
                             perp_position_transformed = (
                                 convert_perp_position_to_response_perp_position(
                                     perp_position=perp_position,
@@ -242,14 +239,6 @@ class UserPortfolio:
             spot_position, "open_asks", spot_position.open_asks / BASE_PRECISION
         )
 
-    # def get_spot_position_liquidation_price(
-    #     self, market_index: int, drift_user_client: DriftUser
-    # ) -> float:
-    #     liqudation_price = drift_user_client.get_spot_liq_price(market_index)
-    #     if liqudation_price == -1:
-    #         return 0
-    #     return liqudation_price
-
     async def get_user_spot_positions(self) -> Optional[List[CustomSpotPosition]]:
         try:
             if self.current_market_data is None:
@@ -273,7 +262,6 @@ class UserPortfolio:
                             )
                             if spot_position is None:
                                 continue
-                            self.transform_spot_position_values(spot_position)
                             data_to_add = {
                                 "current_price": self.get_market_price(
                                     marketIndex, drift_user_client, "SPOT"
@@ -286,6 +274,7 @@ class UserPortfolio:
                                 ),
                                 "category": "both",
                             }
+                            self.transform_spot_position_values(spot_position)
                             spot_position = (
                                 convert_spot_position_to_custom_spot_position(
                                     spot_position=spot_position,

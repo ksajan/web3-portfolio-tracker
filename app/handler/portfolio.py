@@ -164,11 +164,8 @@ class Positions:
     ]:
         await self.initialize_user_portfolio()
         perp_positions = await self.get_all_perp_psoitions()
-        print(perp_positions, "perp_positions")
         spot_positions = await self.get_all_spot_positions()
-        # print(spot_positions, "spot_positions")
         unrealized_pnl_positions = await self.get_all_unrealized_pnl_positions()
-        # print(unrealized_pnl_positions, "unrealized_pnl_positions")
         return {
             "perp_positions": perp_positions,
             "spot_positions": spot_positions,
