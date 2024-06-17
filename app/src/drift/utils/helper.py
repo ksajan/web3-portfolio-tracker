@@ -3,7 +3,7 @@ from typing import Any, Dict, List, TypeVar
 
 from driftpy.drift_client import PerpPosition, SpotPosition
 
-from app.models.drift_position import CustomPerpPosition, CustomSpotPosition
+from app.models.drift_types import CustomPerpPosition, CustomSpotPosition
 
 
 def convert_dataclass_to_dict(dataclass_object):

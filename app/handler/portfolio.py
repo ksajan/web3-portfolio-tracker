@@ -3,12 +3,12 @@ from typing import Dict, List, Union
 from driftpy.drift_client import DriftClient
 from fastapi import HTTPException
 
-from app.models.drift_position import (
+from app.models.drift_types import (
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
 )
-from app.models.positions_response import (
+from app.models.response_positions import (
     ResponsePerpPosition,
     ResponseSpotPosition,
     ResponseUnrealizedPnLPosition,
