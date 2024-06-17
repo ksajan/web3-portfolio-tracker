@@ -63,6 +63,13 @@ Run the Docker container:
 docker run -p 8002:8001 --env-file .env quant-portfolio
 ```
 
+#### Build Docker image in Github Actions
+tags like `v*.*.*` trigger CI Docker image builds
+```bash
+git tag v0.0.2
+git push origin v0.0.2
+```
+
 ### 3. Using Packaged Docker Image
 
 #### Pull and Run
