@@ -2,7 +2,7 @@
 
 export HOST=${HOST:-0.0.0.0}
 export PORT=${PORT:-8001}
-export WORKERS=${WORKERS:-4}
+export WORKERS=${WORKERS:-1}
 export TIMEOUT=${TIMEOUT:-600}
 export LOG_LEVEL=${LOG_LEVEL:-warning}
 
