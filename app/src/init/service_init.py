@@ -1,6 +1,12 @@
 import asyncio
 
 from app.src.drift.clients.drift_client import DriftClientManager
+from app.src.loader.constants import async_clients
+
+
+def register_async_clients():
+    async_clients["mainnet"] = None
+    async_clients["devnet"] = None
 
 
 async def set_drift_client():
