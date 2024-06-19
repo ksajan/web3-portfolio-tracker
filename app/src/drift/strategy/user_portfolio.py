@@ -6,7 +6,7 @@ from driftpy.drift_user import BASE_PRECISION, QUOTE_PRECISION, DriftUser
 from driftpy.drift_user_stats import DriftUserStats
 from driftpy.types import PerpPosition, SpotPosition
 
-from app.models.drift_position import (
+from app.models.drift_types import (
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
