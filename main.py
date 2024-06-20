@@ -6,11 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import app.src.init.service_init
 from app.route import portfolio
-from app.src.handler_resource.clients import (
+from app.src.loader.constants import async_clients
+from app.src.resource_handler.clients import (
     clear_internal_resources,
     subscribe_all_clients,
 )
-from app.src.loader.constants import async_clients
 
 
 @asynccontextmanager
