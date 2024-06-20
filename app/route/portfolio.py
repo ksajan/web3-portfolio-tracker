@@ -7,9 +7,11 @@ router = APIRouter(prefix="/api/v1/portfolio", tags=["portfolio"])
 
 
 @router.get("/positions", tags=["portfolio"])
-async def get_positions(request: Request, wallet_address: str, chain_type: str):
+async def get_positions(
+    request: Request, wallet_address: str, chain_type: str = "mainnet"
+):
     try:
-        drift_client = get_drift_client(request.app, chain_type)
+        drift_client = get_drift_client(chain_type)
         if drift_client is None:
             raise HTTPException(
                 status_code=500, detail="Drift client is not initialized"
