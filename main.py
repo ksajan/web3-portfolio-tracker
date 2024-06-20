@@ -1,11 +1,28 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import app.src.init.service_init
 from app.route import portfolio
-from app.src.init.service_init import init_drift_clients
+from app.src.loader.constants import async_clients
+from app.src.resource_handler.clients import (
+    clear_internal_resources,
+    subscribe_all_clients,
+)
 
-app = FastAPI(debug=True, title="API", description="API")
+
+@asynccontextmanager
+async def lifecycle(app: FastAPI):
+    # At the startup of the application
+    await subscribe_all_clients()
+    yield
+    # At the shutdown of the application
+    await clear_internal_resources()
+
+
+app = FastAPI(debug=True, title="API", description="API", lifespan=lifecycle)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,23 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Quant Portfolio API Service"}
-
-
-@app.get("/health")
-def health_check():
-    return {"status": True, "message": "Service is up and running"}
-
-
-@app.on_event("startup")
-async def startup_event():
-    await init_drift_clients(app)
-
-
 app.include_router(portfolio.router)
 
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="0.0.0.0", port=8002)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8002)
