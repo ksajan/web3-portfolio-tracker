@@ -4,7 +4,6 @@ from app.src.loader.constants import async_clients
 
 async def subscribe_all_clients():
     try:
-        print("Subscribing to all clients", (async_clients.get("drift_client").keys()))
         for client_type in async_clients.keys():
             for network_type in async_clients[client_type].keys():
                 client = async_clients[client_type][network_type]
@@ -15,14 +14,20 @@ async def subscribe_all_clients():
                             if drift_client is None:
                                 raise ValueError("Error in setting drift client")
                             driftClientManager = DriftClientManager(network_type)
-                            await driftClientManager.subscribe(drift_client)
+                            # check if the client subscription is successful
+                            try:
+                                await driftClientManager.subscribe(drift_client)
+                            except Exception as e:
+                                raise ValueError(
+                                    f"subscription failed for {client_type} {network_type} with error: {e}"
+                                )
                             async_clients[client_type][network_type] = drift_client
                             print(f"Subscribed to {client_type} {network_type}")
                             del driftClientManager
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
     except Exception as e:
-        print(f"Error in subscribing to all clients: {e}")
+        print(f"Error in subscribing to client: {e}")
 
 
 async def clear_internal_resources():
@@ -34,9 +39,14 @@ async def clear_internal_resources():
                     match client_type:
                         case "drift_client":
                             driftClientManager = DriftClientManager(network_type)
-                            await driftClientManager.unsubscribe(client)
-                            # delete the object
+                            try:
+                                await driftClientManager.unsubscribe(client)
+                            except Exception as e:
+                                raise ValueError(
+                                    f"unsubscription failed for {client_type} {network_type} with error: {e}"
+                                )
                             print(f"Unsubscribed from {client_type} {network_type}")
+                            del driftClientManager
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
     except Exception as e:
