@@ -8,10 +8,6 @@ from app.src.loader.constants import async_clients
 
 
 def register_async_clients(client_type: str, network_type: str):
-    print(
-        f"Registering async client for client type: {client_type} and network type: {network_type}"
-    )
-
     def decorator(fn):
         async_clients[client_type][network_type] = fn
         return fn

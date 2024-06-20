@@ -4,14 +4,12 @@ from fastapi import HTTPException
 
 from app.src.loader.constants import async_clients
 
-print(async_clients, "sajan")
-
 
 def get_drift_client(chain_type: str):
     if chain_type == "mainnet":
         return async_clients.get("drift_client").get(chain_type)
     elif chain_type == "devnet":
-        return None
+        return async_clients.get("drift_client").get(chain_type)
     else:
         raise HTTPException(status_code=400, detail="Invalid chain type")
 
