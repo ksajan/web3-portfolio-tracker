@@ -272,7 +272,7 @@ class UserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "SPOT"
                                 ),
-                                "category": "both",
+                                "category": "exposure",
                             }
                             self.transform_spot_position_values(spot_position)
                             spot_position = (
@@ -325,6 +325,7 @@ class UserPortfolio:
                                 ),
                                 type="perp",
                                 market_index=marketIndex,
+                                category="both",
                             )
                             response.append(custom_unrealized_pnl.__dict__)
                         for marketIndex in range(

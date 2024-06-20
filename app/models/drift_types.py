@@ -62,3 +62,4 @@ class CustomUnrealizedPnLPosition:
     chain: str = "Solana"
     platform: str = "Drift"
     comment: str = "Drift UPnL"
+    category: str = "both"

@@ -89,6 +89,7 @@ class PositionFactory:
             chain=unrealized_pnl_position.chain,
             platform=unrealized_pnl_position.platform,
             comment=unrealized_pnl_position.comment,
+            category=unrealized_pnl_position.category,
         )
 
     @staticmethod
