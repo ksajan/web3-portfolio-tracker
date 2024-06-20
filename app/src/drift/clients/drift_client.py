@@ -1,3 +1,5 @@
+from typing import Optional
+
 from anchorpy import Wallet
 from driftpy.drift_client import DriftClient
 from driftpy.keypair import load_keypair
@@ -49,7 +51,7 @@ class DriftClientManager:
         else:
             raise ValueError(f"Invalid chain type for drift client: {self.chain_type}")
 
-    def get_drift_client(self) -> DriftClient:
+    def get_drift_client(self) -> Optional[DriftClient]:
         try:
             connection = self.get_rpc_connection_client()
             wallet = self.get_dummy_wallet()
@@ -65,3 +67,6 @@ class DriftClientManager:
 
     async def subscribe(self, drift_client: DriftClient) -> None:
         await drift_client.subscribe()
+
+    async def unsubscribe(self, drift_client: DriftClient) -> None:
+        await drift_client.unsubscribe()
