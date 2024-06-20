@@ -1,5 +1,3 @@
-import asyncio
-
 from app.src.drift.clients.drift_client import DriftClientManager
 from app.src.loader.constants import async_clients
 

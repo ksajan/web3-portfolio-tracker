@@ -1,5 +1,3 @@
-import traceback
-
 from anchorpy import Wallet
 from driftpy.drift_client import DriftClient
 from driftpy.keypair import load_keypair
@@ -8,7 +6,7 @@ from solders.keypair import Keypair  # type: ignore
 
 import app.src.loader.env_vars as env_vars
 from app.constants.common import DriftEnv
-from app.constants.networks import NetworkConstants
+from app.constants.networks import Networks
 
 SOLANA_DEVNET_RPC_URL = env_vars.SOLANA_DEVNET_RPC_URL
 SOLANA_MAINNET_RPC_URL = env_vars.SOLANA_MAINNET_RPC_URL
@@ -22,7 +20,7 @@ class DriftClientEnvChainType:
 class DriftClientManager:
     def __init__(self, chain_type: DriftEnv):
         self.chain_type = chain_type
-        self.network_constants = NetworkConstants()
+        self.network_constants = Networks.SOLANA
         self.validate_chain_type()
 
     def validate_chain_type(self) -> None:
@@ -43,9 +41,10 @@ class DriftClientManager:
         return Wallet.dummy()
 
     def get_rpc_connection_client(self) -> AsyncClient:
-        if self.chain_type == self.network_constants.SOLANA_MAINNET:
+        if self.chain_type == self.network_constants.networkTypes.SOLANA_MAINNET.value:
             return AsyncClient(endpoint=SOLANA_MAINNET_RPC_URL)
-        elif self.chain_type == self.network_constants.SOLANA_DEVNET:
+        elif self.chain_type == self.network_constants.networkTypes.SOLANA_DEVNET.value:
+            print("Using devnet", SOLANA_DEVNET_RPC_URL)
             return AsyncClient(endpoint=SOLANA_DEVNET_RPC_URL)
         else:
             raise ValueError(f"Invalid chain type for drift client: {self.chain_type}")

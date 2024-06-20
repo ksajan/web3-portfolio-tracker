@@ -316,7 +316,7 @@ class UserPortfolio:
                             unrealized_pnl = drift_user_client.get_unrealized_pnl(
                                 market_index=marketIndex
                             )
-                            if unrealized_pnl is None:
+                            if unrealized_pnl is None or unrealized_pnl == 0:
                                 continue
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
