@@ -1,12 +1,10 @@
 from contextlib import asynccontextmanager
 
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import app.src.init.service_init
-from app.route import portfolio
-from app.src.loader.constants import async_clients
+from app.route import health, portfolio
 from app.src.resource_handler.clients import (
     clear_internal_resources,
     subscribe_all_clients,
@@ -32,6 +30,4 @@ app.add_middleware(
 )
 
 app.include_router(portfolio.router)
-
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="0.0.0.0", port=8002)
+app.include_router(health.health_router)
