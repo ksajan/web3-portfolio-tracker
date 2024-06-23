@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Optional
 
 from driftpy.drift_client import DriftClient
 
@@ -7,9 +7,10 @@ from app.src.drift.clients.drift_client import DriftClientManager
 from app.src.loader.constants import async_clients
 
 
-def register_async_clients(client_type: str, network_type: str):
+def register_async_clients(client_type: str, network_type: str, skip: bool = False):
     def decorator(fn):
-        async_clients[client_type][network_type] = fn
+        if not skip:
+            async_clients[client_type][network_type] = fn
         return fn
 
     return decorator
@@ -30,7 +31,7 @@ def set_drift_mainnet_client() -> Optional[DriftClient]:
         return None
 
 
-@register_async_clients(client_type="drift_client", network_type="devnet")
+@register_async_clients(client_type="drift_client", network_type="devnet", skip=True)
 def set_drift_devnet_client() -> Optional[DriftClient]:
     try:
         devnet_drift_client_object = DriftClientManager(chain_type="devnet")
