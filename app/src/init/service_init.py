@@ -3,7 +3,7 @@ from typing import Optional
 from driftpy.drift_client import DriftClient
 
 from app.constants.networks import Networks
-from app.src.drift.clients.drift_client import DriftClientManager
+from app.src.clients.drift.clients.drift_client import DriftClientManager
 from app.src.loader.constants import async_clients
 
 
