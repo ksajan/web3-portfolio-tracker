@@ -14,8 +14,7 @@ from app.models.response_positions import (
     ResponseSpotPosition,
     ResponseUnrealizedPnLPosition,
 )
-from app.src.drift.strategy.user_portfolio import UserPortfolio
-from app.utils.helper import generate_uuid
+from app.src.clients.drift.strategy.user_portfolio import UserPortfolio
 
 
 class Positions:

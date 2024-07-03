@@ -162,4 +162,11 @@ cython_debug/
 #.idea/
 .env*
 .*
+dist/*
+/docs/
+.DS_Store
+yarn.lock
+package-lock.json
 test.py
+.ruff*
+node_modules/*

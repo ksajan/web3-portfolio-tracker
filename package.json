@@ -1,0 +1,15 @@
+{
+  "devDependencies": {
+    "typescript": "^5.5.2"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.94.0",
+    "@types/node": "^20.14.8",
+    "@zetamarkets/anchor": "^0.26.1-versioned",
+    "@zetamarkets/sdk": "^1.28",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^2.7.0",
+    "rpc-websockets": "^7.11.0",
+    "ts-node": "^10.9.2"
+  }
+}

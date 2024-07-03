@@ -11,12 +11,12 @@ from app.models.drift_types import (
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
 )
-from app.src.drift.clients.user_client import (
+from app.src.clients.drift.clients.user_client import (
     DriftUserAccountStatsClientManager,
     DriftUserClientManager,
 )
-from app.src.drift.strategy.drift_strategy import DriftStrategy
-from app.src.drift.utils.helper import (
+from app.src.clients.drift.strategy.drift_strategy import DriftStrategy
+from app.src.clients.drift.utils.helper import (
     convert_perp_position_to_response_perp_position,
     convert_spot_position_to_custom_spot_position,
     filter_fields_for_dataclass,
