@@ -2,7 +2,6 @@ import anchorpy
 from anchorpy import Wallet
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Confirmed
-from solders.pubkey import Pubkey
 from zetamarkets_py.client import Client
 from zetamarkets_py.exchange import Exchange
 from zetamarkets_py.types import Asset, Network
@@ -65,7 +64,7 @@ class ZetaClient(Client):
                     else Network.DEVNET
                 ),
             )
-            zeta_client
+            # zeta_client.get_account_risk_summary()
             return zeta_client
         except Exception as e:
             print(f"Error getting Zeta client: {e}")

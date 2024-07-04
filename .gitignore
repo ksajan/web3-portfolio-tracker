@@ -169,4 +169,5 @@ yarn.lock
 package-lock.json
 test.py
 .ruff*
-node_modules/*
+*node_modules/*
+

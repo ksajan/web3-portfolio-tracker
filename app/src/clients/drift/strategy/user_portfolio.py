@@ -6,7 +6,7 @@ from driftpy.drift_user import BASE_PRECISION, QUOTE_PRECISION, DriftUser
 from driftpy.drift_user_stats import DriftUserStats
 from driftpy.types import PerpPosition, SpotPosition
 
-from app.models.drift_types import (
+from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
@@ -24,7 +24,7 @@ from app.src.clients.drift.utils.helper import (
 )
 
 
-class UserPortfolio:
+class DriftUserPortfolio:
     def __init__(
         self,
         user_pubkey: str,

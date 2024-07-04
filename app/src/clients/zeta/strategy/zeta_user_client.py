@@ -1,7 +1,6 @@
 from solders.pubkey import Pubkey
 from zetamarkets_py import pda
 from zetamarkets_py.client import Client
-from zetamarkets_py.exchange import Exchange
 
 
 class ZetaUserClientManager:
