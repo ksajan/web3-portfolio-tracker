@@ -171,3 +171,4 @@ test.py
 .ruff*
 *node_modules/*
 
+/node_modules/

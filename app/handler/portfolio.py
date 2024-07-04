@@ -1,11 +1,10 @@
 from typing import Dict, List, Union
 
-from driftpy.drift_client import DriftClient
 from fastapi import HTTPException
 
 from app.handler.position import PositionFactory
 from app.models.clients import ProtocolClients
-from app.models.drift_types import (
+from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
@@ -20,11 +19,13 @@ from app.src.clients.zeta.strategy.user_portfolio import ZetaUserPortfolio
 
 
 class Positions:
-    def __init__(self, wallet_address: str, clients: Dict[str, ProtocolClients]):
+    def __init__(self, wallet_address: str, clients: ProtocolClients):
+        # self.zeta_user_portfolio = None
+        # self.user_portfolio = None
         self.positions = []
         self.wallet_address = wallet_address
-        self.drift_client = clients.get("drift_client")
-        self.zeta_client = clients.get("zeta_client")
+        self.drift_client = clients.drift_client
+        self.zeta_client = clients.zeta_client
 
     async def initialize_user_portfolio(self):
         if self.drift_client is None:
@@ -38,9 +39,10 @@ class Positions:
             raise HTTPException(
                 status_code=500, detail="Zeta client is not initialized"
             )
-        self.zeta_user_portfolio = await ZetaUserPortfolio.create(
+        self.zeta_user_portfolio: ZetaUserPortfolio = ZetaUserPortfolio.create(
             self.wallet_address, self.zeta_client
         )
+        print(f"Zeta User Portfolio: {self.zeta_user_portfolio.user_pubkey}")
 
     def get_perp_markets(self):
         perp_markets = self.user_portfolio.get_all_markets()
@@ -63,11 +65,15 @@ class Positions:
 
     async def get_all_perp_positions(self) -> List[ResponsePerpPosition]:
         perp_positions = await self.user_portfolio.get_user_perpetual_positions()
-        drift_response = []
-        if perp_positions is not None:
-            drift_response = self._populate_response_perp_positions(perp_positions)
-        zeta_perp_positions = await self.zeta_user_portfolio
-        return []
+        if perp_positions is None:
+            raise Exception("Error in fetching perp positions")
+        drift_response = self._populate_response_perp_positions(perp_positions)
+        zeta_perp_positions = await self.zeta_user_portfolio.get_user_perpetual_positions()
+        print(f"Zeta Perp Positions: {zeta_perp_positions}")
+        if zeta_perp_positions is None:
+            raise Exception("Error in fetching zeta perp positions")
+        zeta_response = self._populate_response_perp_positions(zeta_perp_positions)
+        return drift_response + zeta_response
 
     def _populate_response_spot_positions(
         self, spot_positions: List[CustomSpotPosition]

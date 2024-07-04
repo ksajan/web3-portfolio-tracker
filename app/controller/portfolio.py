@@ -1,17 +1,17 @@
 from typing import Any, Dict, List
 
-from driftpy.drift_client import DriftClient
 from fastapi import HTTPException
 
 from app.handler.portfolio import Positions
+from app.models.clients import ProtocolClients
 
 
 async def get_all_positions(
-    wallet_address: str, drift_client: DriftClient
-) -> List[Dict[str, Any]]:
+    wallet_address: str, clients: ProtocolClients
+) -> Dict[str, List[Any]]:
     try:
         position_object = Positions(
-            wallet_address=wallet_address, drift_client=drift_client
+            wallet_address=wallet_address, clients=clients
         )
         await position_object.initialize_user_portfolio()
         all_positions = await position_object.get_all_positions()

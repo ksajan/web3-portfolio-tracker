@@ -19,7 +19,7 @@ from app.src.clients.drift.strategy.drift_strategy import DriftStrategy
 from app.src.clients.drift.utils.helper import (
     convert_perp_position_to_response_perp_position,
     convert_spot_position_to_custom_spot_position,
-    filter_fields_for_dataclass,
+    filter_fields_for_pydantic_model,
     update_fields,
 )
 
@@ -212,7 +212,7 @@ class DriftUserPortfolio:
                             )
                             perp_positions.append(perp_position_transformed.__dict__)
                     response.extend(perp_positions)
-                filtered_data = filter_fields_for_dataclass(
+                filtered_data = filter_fields_for_pydantic_model(
                     response, CustomPerpPosition
                 )
                 return filtered_data
@@ -284,7 +284,7 @@ class DriftUserPortfolio:
                             spot_positions.append(spot_position.__dict__)
 
                     response.extend(spot_positions)
-                filtered_data = filter_fields_for_dataclass(
+                filtered_data = filter_fields_for_pydantic_model(
                     response, CustomSpotPosition
                 )
                 if filtered_data is None:
@@ -295,7 +295,7 @@ class DriftUserPortfolio:
             print(f"Error in getting user positions: {e}")
             return None
 
-    async def get_user_unrealized_pnl(self) -> Optional[CustomUnrealizedPnLPosition]:
+    async def get_user_unrealized_pnl(self) -> Optional[List[CustomUnrealizedPnLPosition]]:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
@@ -345,7 +345,7 @@ class DriftUserPortfolio:
                                 market_index=marketIndex,
                             )
                             response.append(custom_unrealized_pnl.__dict__)
-                filtered_data = filter_fields_for_dataclass(
+                filtered_data = filter_fields_for_pydantic_model(
                     response, CustomUnrealizedPnLPosition
                 )
                 return filtered_data

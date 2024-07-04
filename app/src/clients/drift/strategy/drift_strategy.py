@@ -7,7 +7,7 @@ class DriftStrategy:
     def __init__(self, drift_client: DriftClient) -> None:
         self.drift_client = drift_client
 
-    async def get_markets(self) -> Dict[int, str]:
+    async def get_markets(self) -> Dict[str, dict]:
         all_markets = {"perp": {}, "spot": {}}
         all_perp_markets = await self.drift_client.program.account["PerpMarket"].all()
         sorted_perp_markets = sorted(

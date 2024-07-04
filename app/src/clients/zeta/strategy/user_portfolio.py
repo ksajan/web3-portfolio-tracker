@@ -2,11 +2,15 @@ import json
 import os
 import subprocess
 from typing import List, Optional
+import traceback
+
+import anchorpy
 
 from solders.pubkey import Pubkey
 from zetamarkets_py.client import Client
 from zetamarkets_py.risk import AccountRiskSummary
 from zetamarkets_py.zeta_client.accounts.cross_margin_account import CrossMarginAccount
+from zetamarkets_py.zeta_client.accounts.pricing import Pricing
 
 from app.models.client_response_types import (
     CustomPerpPosition,
@@ -16,12 +20,19 @@ from app.src.clients.zeta.strategy.zeta_user_client import ZetaUserClientManager
 
 
 class ZetaUserPortfolio:
-    async def __init__(
+    def __init__(
         self, user_pubkey: str, zeta_user_client_manager: ZetaUserClientManager
     ):
+        self.liquidation_price = None
+        self.account_risk_summary = None
+        print(f"User Pubkey: {user_pubkey}")
         self.user_pubkey = Pubkey.from_string(user_pubkey)
         self.zeta_user_client_manager = zeta_user_client_manager
+
+    async def init_zeta_resource(self):
+        print("Initializing Zeta Resources")
         self.account_risk_summary = await self.get_user_risk_summary()
+        print(f"Account Risk Summary: {self.account_risk_summary}")
         self.liquidation_price = await self.get_risk_details()
 
     @classmethod
@@ -41,18 +52,29 @@ class ZetaUserPortfolio:
         marginAccountData = await CrossMarginAccount.fetch(
             conn=self.zeta_user_client_manager.zeta_client.connection,
             address=self.user_pubkey,
-            commitment=self.zeta_user_client_manager.zeta_client.commitment,
-            program_id=self.zeta_user_client_manager.exchange.program_id,
+            commitment=self.zeta_user_client_manager.zeta_client.connection.commitment,
+            program_id=self.zeta_user_client_manager.zeta_client.exchange.program_id,
         )
         print(marginAccountData.to_json())
         return marginAccountData
 
     async def get_user_risk_summary(self) -> AccountRiskSummary:
-        return (
-            await self.zeta_user_client_manager.zeta_client.get_account_risk_summary()
-        )
+        try:
+            account_infos = await anchorpy.utils.rpc.get_multiple_accounts(
+                self.zeta_user_client_manager.zeta_client.connection, [self.zeta_user_client_manager.get_user_margin_account_address(), self.zeta_user_client_manager.zeta_client.exchange._pricing_address]
+            )
+            margin_account = CrossMarginAccount.decode(account_infos[0].account.data)
+            pricing_account = Pricing.decode(account_infos[1].account.data)
+            accountRiskSummary = AccountRiskSummary.from_margin_and_pricing_accounts(margin_account, pricing_account)
+            return accountRiskSummary
+        except Exception as e:
+            print(f"Error getting user risk summary: {e}")
+            traceback.print_exc()
+            return None
 
-    async def get_risk_details(self) -> float:
+    @staticmethod
+    async def get_risk_details() -> float:
+        print(f"wow came to run the typescript code")
         # running the typescript code to get the liquidation price
         typescript_file_path = os.path.join(
             os.path.dirname(__file__), "zeta_typescript.ts"
@@ -91,7 +113,7 @@ class ZetaUserPortfolio:
     async def get_user_perpetual_positions(
         self,
     ) -> Optional[List[CustomPerpPosition]]:
-        # fetch the details from the user's margin account and risk details to return the positions with custom CrossMarginPosition objects
+        await self.init_zeta_resource()
         try:
             response = []
             for asset, position in self.account_risk_summary.positions.items():
@@ -117,7 +139,7 @@ class ZetaUserPortfolio:
             print(f"Error getting user positions: {e}")
             return None
 
-    async def get_user_urealized_pnl(
+    async def get_user_unrealized_pnl(
         self,
     ) -> Optional[List[CustomUnrealizedPnLPosition]]:
 

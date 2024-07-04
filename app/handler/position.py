@@ -1,4 +1,4 @@
-from app.models.drift_types import (
+from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,

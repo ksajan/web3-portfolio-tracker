@@ -1,9 +1,9 @@
-from dataclasses import is_dataclass
-from typing import Any, Dict, List, TypeVar
+from pydantic import BaseModel, ValidationError
+from typing import Any, Dict, List, TypeVar, Type
 
 from driftpy.drift_client import PerpPosition, SpotPosition
 
-from app.models.drift_types import CustomPerpPosition, CustomSpotPosition
+from app.models.client_response_types import CustomPerpPosition, CustomSpotPosition
 
 
 def convert_dataclass_to_dict(dataclass_object):
@@ -15,7 +15,7 @@ def convert_dict_to_dataclass(dataclassObject, data):
 
 
 def convert_perp_position_to_response_perp_position(
-    perp_position: PerpPosition, data: dict
+        perp_position: PerpPosition, data: dict
 ) -> CustomPerpPosition:
     perp_position_dict = convert_dataclass_to_dict(perp_position)
     for key, value in data.items():
@@ -24,7 +24,7 @@ def convert_perp_position_to_response_perp_position(
 
 
 def convert_spot_position_to_custom_spot_position(
-    spot_position: SpotPosition, data: dict
+        spot_position: SpotPosition, data: dict
 ) -> CustomSpotPosition:
     spot_position_dict = convert_dataclass_to_dict(spot_position)
     for key, value in data.items():
@@ -39,22 +39,25 @@ def update_fields(instance: Any, field_name: str, field_new_value: Any):
         raise AttributeError(f"{instance} has no attribute {field_name}")
 
 
-T = TypeVar("T")
+T = TypeVar('T', bound=BaseModel)
 
 
-def filter_fields_for_dataclass(data: List[Dict[str, Any]], target_class: T) -> List[T]:
+def filter_fields_for_pydantic_model(data: List[Dict[str, Any]], target_class: Type[T]) -> List[T]:
     try:
-        if not is_dataclass(target_class):
-            raise ValueError(f"{target_class} is not a dataclass")
+        if not issubclass(target_class, BaseModel):
+            raise ValueError(f"{target_class} is not a subclass of pydantic.BaseModel")
 
-        target_fields = target_class.__dataclass_fields__.keys()
         filtered_data = []
         for data_dict in data:
-            filtered_dict = {
-                key: value for key, value in data_dict.items() if key in target_fields
-            }
-            filtered_data.append(convert_dict_to_dataclass(target_class, filtered_dict))
+            try:
+                # Create an instance of the Pydantic model, ignoring extra fields
+                model_instance = target_class(**data_dict)
+                filtered_data.append(model_instance)
+            except ValidationError as e:
+                print(f"Validation error: {e}")
+                continue  # Skip invalid data_dict
+
         return filtered_data
     except Exception as e:
-        print(f"Error in filtering fields and transforming the dataclass object: {e}")
-        return None
+        print(f"Error in filtering fields and transforming the Pydantic model object: {e}")
+        return []

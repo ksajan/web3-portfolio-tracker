@@ -1,11 +1,10 @@
-from dataclasses import dataclass
 from typing import List, Optional
+from pydantic import BaseModel
 
 from app.constants.drift_constants import spot_balance_type, spot_category
 
 
-@dataclass
-class CustomPerpPosition:
+class CustomPerpPosition(BaseModel):
     base_asset_amount: float
     market_index: int
     symbol: str
@@ -18,8 +17,8 @@ class CustomPerpPosition:
     comment: str = "Drift perp position"
 
 
-@dataclass
-class CustomSpotPosition:
+
+class CustomSpotPosition(BaseModel):
     scaled_balance: int
     market_index: int
     symbol: str
@@ -32,8 +31,8 @@ class CustomSpotPosition:
     category: str = spot_category
 
 
-@dataclass
-class CustomUnrealizedPnLPosition:
+
+class CustomUnrealizedPnLPosition(BaseModel):
     pnl: float
     symbol: str  # assuming USDC is used for unrealized PnL
     type: str

@@ -65,8 +65,10 @@ class DriftClientManager:
             print(f"Error in getting drift client: {e}")
             return None
 
-    async def subscribe(self, drift_client: DriftClient) -> None:
+    @staticmethod
+    async def subscribe(drift_client: DriftClient) -> None:
         await drift_client.subscribe()
 
-    async def unsubscribe(self, drift_client: DriftClient) -> None:
+    @staticmethod
+    async def unsubscribe(drift_client: DriftClient) -> None:
         await drift_client.unsubscribe()
