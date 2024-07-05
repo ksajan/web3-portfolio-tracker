@@ -1,4 +1,5 @@
 from typing import Optional
+
 import anchorpy
 from anchorpy import Wallet
 from solana.rpc.async_api import AsyncClient
@@ -19,13 +20,13 @@ class ZetaClientManager:
         self.network = (
             Network.MAINNET
             if self.chain_type
-               == self.network_constants.networkTypes.SOLANA_MAINNET.value
+            == self.network_constants.networkTypes.SOLANA_MAINNET.value
             else Network.DEVNET
         )
         self.rpc_url = (
             SOLANA_MAINNET_RPC_URL
             if self.chain_type
-               == self.network_constants.networkTypes.SOLANA_MAINNET.value
+            == self.network_constants.networkTypes.SOLANA_MAINNET.value
             else SOLANA_DEVNET_RPC_URL
         )
         self.validate_chain_type()
@@ -57,28 +58,33 @@ class ZetaClientManager:
             return None
 
     async def subscribe(self, zeta_client: Optional[Client]) -> Client:
-        if zeta_client is not None:
-            return await zeta_client.load(
+        try:
+            if zeta_client is not None:
+                return await zeta_client.load(
+                    endpoint=self.rpc_url,
+                    network=(
+                        Network.MAINNET
+                        if self.chain_type
+                        == self.network_constants.networkTypes.SOLANA_MAINNET.value
+                        else Network.DEVNET
+                    ),
+                )
+            else:
+                return await Client.load(
+                    endpoint=self.rpc_url,
+                    network=(
+                        Network.MAINNET
+                        if self.chain_type
+                        == self.network_constants.networkTypes.SOLANA_MAINNET.value
+                        else Network.DEVNET
+                    ),
+                )
+        except Exception as e:
+            raise ValueError(f"Error: {e}")
 
-                endpoint=self.rpc_url,
-                network=(
-                    Network.MAINNET
-                    if self.chain_type
-                       == self.network_constants.networkTypes.SOLANA_MAINNET.value
-                    else Network.DEVNET
-                ))
-        else:
-            return await Client.load(
-                endpoint=self.rpc_url,
-                network=(
-                    Network.MAINNET
-                    if self.chain_type
-                       == self.network_constants.networkTypes.SOLANA_MAINNET.value
-                    else Network.DEVNET
-                ),
-            )
-
-    @staticmethod
-    async def unsubscribe(zeta_client: Client) -> None:
-        del zeta_client
-        pass
+    async def unsubscribe(self, zeta_client: Client) -> None:
+        try:
+            del zeta_client
+            pass
+        except Exception as e:
+            raise ValueError(f"Error: {e}")

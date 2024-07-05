@@ -45,8 +45,7 @@ async function main() {
     );
   });
 
-  await Exchange.close();
-  await client.close();
+  process.exit(0);
 }
 
 main().catch(console.error.bind(console));

@@ -29,7 +29,9 @@ async def subscribe_all_clients():
                             zeta_client = client()
                             zetaClientManger = ZetaClientManager(network_type)
                             try:
-                                zeta_client = await zetaClientManger.subscribe(zeta_client)
+                                zeta_client = await zetaClientManger.subscribe(
+                                    zeta_client
+                                )
                             except Exception as e:
                                 raise ValueError(
                                     f"subscription failed for {client_type} {network_type} with error: {e}"

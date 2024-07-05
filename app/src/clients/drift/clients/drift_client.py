@@ -43,13 +43,24 @@ class DriftClientManager:
         return Wallet.dummy()
 
     def get_rpc_connection_client(self) -> AsyncClient:
-        if self.chain_type == self.network_constants.networkTypes.SOLANA_MAINNET.value:
-            return AsyncClient(endpoint=SOLANA_MAINNET_RPC_URL)
-        elif self.chain_type == self.network_constants.networkTypes.SOLANA_DEVNET.value:
-            print("Using devnet", SOLANA_DEVNET_RPC_URL)
-            return AsyncClient(endpoint=SOLANA_DEVNET_RPC_URL)
-        else:
-            raise ValueError(f"Invalid chain type for drift client: {self.chain_type}")
+        try:
+            if (
+                self.chain_type
+                == self.network_constants.networkTypes.SOLANA_MAINNET.value
+            ):
+                return AsyncClient(endpoint=SOLANA_MAINNET_RPC_URL)
+            elif (
+                self.chain_type
+                == self.network_constants.networkTypes.SOLANA_DEVNET.value
+            ):
+                print("Using devnet", SOLANA_DEVNET_RPC_URL)
+                return AsyncClient(endpoint=SOLANA_DEVNET_RPC_URL)
+            else:
+                raise ValueError(
+                    f"Invalid chain type for drift client: {self.chain_type}"
+                )
+        except Exception as e:
+            raise ValueError(f"Error in getting rpc connection client: {e}")
 
     def get_drift_client(self) -> Optional[DriftClient]:
         try:
@@ -65,10 +76,14 @@ class DriftClientManager:
             print(f"Error in getting drift client: {e}")
             return None
 
-    @staticmethod
-    async def subscribe(drift_client: DriftClient) -> None:
-        await drift_client.subscribe()
+    async def subscribe(self, drift_client: DriftClient) -> None:
+        try:
+            await drift_client.subscribe()
+        except Exception as e:
+            raise ValueError(f"Error: {e}")
 
-    @staticmethod
-    async def unsubscribe(drift_client: DriftClient) -> None:
-        await drift_client.unsubscribe()
+    async def unsubscribe(self, drift_client: DriftClient) -> None:
+        try:
+            await drift_client.unsubscribe()
+        except Exception as e:
+            raise ValueError(f"Error: {e}")

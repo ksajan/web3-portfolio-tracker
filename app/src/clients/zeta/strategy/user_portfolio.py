@@ -14,6 +14,7 @@ from zetamarkets_py.zeta_client.accounts.pricing import Pricing
 
 from app.models.client_response_types import (
     CustomPerpPosition,
+    CustomSpotPosition,
     CustomUnrealizedPnLPosition,
 )
 from app.models.clients import LiquidationPrice
@@ -125,7 +126,6 @@ class ZetaUserPortfolio:
                 except json.JSONDecodeError:
                     continue
 
-            print("Risk Data:", response)
             return response
         except Exception as e:
             print(f"Error getting risk details: {e}")
@@ -179,3 +179,7 @@ class ZetaUserPortfolio:
                 category="both",
             )
         ]
+
+    async def get_user_spot_positions(self) -> Optional[List[CustomSpotPosition]]:
+        # return empty method for as zeta does not support spot positions
+        return []
