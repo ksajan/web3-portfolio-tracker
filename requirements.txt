@@ -2,3 +2,5 @@ fastapi
 python-dotenv
 driftpy
 gunicorn
+zetamarkets_py
+pythonjsonlogger
