@@ -1,11 +1,10 @@
 import json
 import os
 import subprocess
-from typing import List, Optional
 import traceback
+from typing import List, Optional
 
 import anchorpy
-
 from solders.pubkey import Pubkey
 from zetamarkets_py.client import Client
 from zetamarkets_py.risk import AccountRiskSummary
@@ -17,6 +16,10 @@ from app.models.client_response_types import (
     CustomUnrealizedPnLPosition,
 )
 from app.src.clients.zeta.strategy.zeta_user_client import ZetaUserClientManager
+from app.src.loader import env_vars
+
+SOLANA_MAINNET_RPC = env_vars.SOLANA_MAINNET_RPC_URL
+SOLANA_DEVNET_RPC = env_vars.SOLANA_DEVNET_RPC_URL
 
 
 class ZetaUserPortfolio:
@@ -25,14 +28,11 @@ class ZetaUserPortfolio:
     ):
         self.liquidation_price = None
         self.account_risk_summary = None
-        print(f"User Pubkey: {user_pubkey}")
         self.user_pubkey = Pubkey.from_string(user_pubkey)
         self.zeta_user_client_manager = zeta_user_client_manager
 
     async def init_zeta_resource(self):
-        print("Initializing Zeta Resources")
         self.account_risk_summary = await self.get_user_risk_summary()
-        print(f"Account Risk Summary: {self.account_risk_summary}")
         self.liquidation_price = await self.get_risk_details()
 
     @classmethod
@@ -61,36 +61,50 @@ class ZetaUserPortfolio:
     async def get_user_risk_summary(self) -> AccountRiskSummary:
         try:
             account_infos = await anchorpy.utils.rpc.get_multiple_accounts(
-                self.zeta_user_client_manager.zeta_client.connection, [self.zeta_user_client_manager.get_user_margin_account_address(), self.zeta_user_client_manager.zeta_client.exchange._pricing_address]
+                self.zeta_user_client_manager.zeta_client.connection,
+                [
+                    self.zeta_user_client_manager.get_user_margin_account_address(),
+                    self.zeta_user_client_manager.zeta_client.exchange._pricing_address,
+                ],
             )
             margin_account = CrossMarginAccount.decode(account_infos[0].account.data)
             pricing_account = Pricing.decode(account_infos[1].account.data)
-            accountRiskSummary = AccountRiskSummary.from_margin_and_pricing_accounts(margin_account, pricing_account)
+            accountRiskSummary = AccountRiskSummary.from_margin_and_pricing_accounts(
+                margin_account, pricing_account
+            )
             return accountRiskSummary
         except Exception as e:
             print(f"Error getting user risk summary: {e}")
             traceback.print_exc()
             return None
 
-    @staticmethod
-    async def get_risk_details() -> float:
-        print(f"wow came to run the typescript code")
+    async def get_risk_details(self) -> float:
         # running the typescript code to get the liquidation price
         typescript_file_path = os.path.join(
             os.path.dirname(__file__), "zeta_typescript.ts"
         )
         # Install the required dependencies from package.json
-        dependencies_install = subprocess.run(
-            ["npm", "install"],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-        print(dependencies_install.stdout, dependencies_install.stderr)
+        # dependencies_install = subprocess.run(
+        #     ["npm", "install"],
+        #     check=True,
+        #     text=True,
+        #     capture_output=True,
+        # )
+        # print(dependencies_install.stdout, dependencies_install.stderr)
 
         # Compile & Run the TypeScript code to JavaScript
         result = subprocess.run(
-            ["npx", "ts-node", typescript_file_path],
+            [
+                "npx",
+                "ts-node",
+                typescript_file_path,
+                "--endpoint",
+                self.zeta_user_client_manager.zeta_client.endpoint,
+                "--network",
+                self.zeta_user_client_manager.zeta_client.network.__str__().lower(),
+                "--user_pubkey",
+                self.user_pubkey.__str__(),
+            ],
             check=True,
             text=True,
             capture_output=True,

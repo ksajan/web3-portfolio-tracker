@@ -1,30 +1,52 @@
-
-import { Wallet, CrossClient, types, Exchange, Network, risk } from '@zetamarkets/sdk'
-import { Keypair, Connection, PublicKey } from '@solana/web3.js'
-import { Asset } from '@zetamarkets/sdk/dist/constants';
-
+import { Wallet, CrossClient, types, Exchange } from "@zetamarkets/sdk";
+import { Keypair, Connection, PublicKey } from "@solana/web3.js";
+import { assetToIndex } from "@zetamarkets/sdk/dist/assets";
+import { toNetwork } from "@zetamarkets/sdk/dist/network";
+import minimist from "minimist";
+import { exchange } from "@zetamarkets/sdk/dist/exchange";
 
 async function main() {
+  const argv = minimist(process.argv.slice(2));
 
-    const user_key = Keypair.generate();
-    const wallet = new Wallet(user_key);
+  const endpoint: string = argv.endpoint;
+  const network: string = argv.network || "mainnet";
+  const userWalletKey: string = argv.user_pubkey;
+  console.log(
+    `Endpoint: ${endpoint}, Network: ${network}, UserWalletKey: ${userWalletKey}`,
+  );
 
-    const connection: Connection = new Connection('https://mainnet.helius-rpc.com/?api-key=27428150-2aee-44d7-a016-6a465d22f926', 'confirmed');
-    const loadExchangeConfig = types.defaultLoadExchangeConfig(
-        Network.MAINNET,
-        connection
+  const user_key = Keypair.generate();
+  const wallet = new Wallet(user_key);
+  const userWalletPublicKey = new PublicKey(userWalletKey);
+
+  const connection: Connection = new Connection(endpoint, "confirmed");
+  const loadExchangeConfig = types.defaultLoadExchangeConfig(
+    toNetwork(network),
+    connection,
+  );
+
+  await Exchange.load(loadExchangeConfig);
+  const client = await CrossClient.load(
+    connection,
+    wallet,
+    undefined,
+    undefined,
+    undefined,
+    userWalletPublicKey,
+  );
+
+  exchange.assets.forEach((asset) => {
+    const riskData = Exchange.riskCalculator.getEstimatedLiquidationPrice(
+      asset,
+      client.account!,
     );
+    console.log(
+      `Asset: ${asset}, Index: ${assetToIndex(asset)}, Liquidation_Price: ${riskData}`,
+    );
+  });
 
-
-    await Exchange.load(loadExchangeConfig);
-    const client = await CrossClient.load(connection, wallet, undefined, undefined, undefined, new PublicKey('BvDMnDXHxw8dLTyfMJWwsZVWsAGzYfJrUak1W3uJ76R4'));
-
-    const riskData = Exchange.riskCalculator.getEstimatedLiquidationPrice(Asset.ONEMBONK, client.account!);
-    console.log("liquidation_price=", riskData);
-    await Exchange.close();
-    await client.close();
-
-
+  await Exchange.close();
+  await client.close();
 }
 
 main().catch(console.error.bind(console));
