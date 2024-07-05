@@ -3,12 +3,12 @@ from typing import Dict, List, Union
 from fastapi import HTTPException
 
 from app.handler.position import PositionFactory
-from app.models.clients import ProtocolClients
 from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
 )
+from app.models.clients import ProtocolClients
 from app.models.response_positions import (
     ResponsePerpPosition,
     ResponseSpotPosition,
@@ -68,8 +68,9 @@ class Positions:
         if perp_positions is None:
             raise Exception("Error in fetching perp positions")
         drift_response = self._populate_response_perp_positions(perp_positions)
-        zeta_perp_positions = await self.zeta_user_portfolio.get_user_perpetual_positions()
-        print(f"Zeta Perp Positions: {zeta_perp_positions}")
+        zeta_perp_positions = (
+            await self.zeta_user_portfolio.get_user_perpetual_positions()
+        )
         if zeta_perp_positions is None:
             raise Exception("Error in fetching zeta perp positions")
         zeta_response = self._populate_response_perp_positions(zeta_perp_positions)
@@ -117,11 +118,27 @@ class Positions:
             return []
 
     async def get_all_unrealized_pnl_positions(self):
-        unrealized_pnl_positions = await self.user_portfolio.get_user_unrealized_pnl()
-        if unrealized_pnl_positions is not None:
-            response = self._populate_unrealized_pnl_positions(unrealized_pnl_positions)
-            return response
-        return []
+        try:
+            unrealized_pnl_positions = (
+                await self.user_portfolio.get_user_unrealized_pnl()
+            )
+            if unrealized_pnl_positions is None:
+                raise Exception("Error in fetching unrealized pnl positions for drift")
+            drift_response = self._populate_unrealized_pnl_positions(
+                unrealized_pnl_positions
+            )
+            zeta_unrealized_pnl_positions = (
+                await self.zeta_user_portfolio.get_user_unrealized_pnl()
+            )
+            if zeta_unrealized_pnl_positions is None:
+                raise Exception("Error in fetching unrealized pnl positions for zeta")
+            zeta_response = self._populate_unrealized_pnl_positions(
+                zeta_unrealized_pnl_positions
+            )
+            return drift_response + zeta_response
+        except Exception as e:
+            print(f"Error in getting unrealized pnl positions: {e}")
+            return []
 
     async def get_all_positions(
         self,

@@ -8,6 +8,7 @@ import anchorpy
 from solders.pubkey import Pubkey
 from zetamarkets_py.client import Client
 from zetamarkets_py.risk import AccountRiskSummary
+from zetamarkets_py.types import Asset
 from zetamarkets_py.zeta_client.accounts.cross_margin_account import CrossMarginAccount
 from zetamarkets_py.zeta_client.accounts.pricing import Pricing
 
@@ -15,6 +16,7 @@ from app.models.client_response_types import (
     CustomPerpPosition,
     CustomUnrealizedPnLPosition,
 )
+from app.models.clients import LiquidationPrice
 from app.src.clients.zeta.strategy.zeta_user_client import ZetaUserClientManager
 from app.src.loader import env_vars
 
@@ -78,57 +80,63 @@ class ZetaUserPortfolio:
             traceback.print_exc()
             return None
 
-    async def get_risk_details(self) -> float:
-        # running the typescript code to get the liquidation price
-        typescript_file_path = os.path.join(
-            os.path.dirname(__file__), "zeta_typescript.ts"
-        )
-        # Install the required dependencies from package.json
-        # dependencies_install = subprocess.run(
-        #     ["npm", "install"],
-        #     check=True,
-        #     text=True,
-        #     capture_output=True,
-        # )
-        # print(dependencies_install.stdout, dependencies_install.stderr)
+    async def get_risk_details(self) -> Optional[List[LiquidationPrice]]:
+        try:
+            # running the typescript code to get the liquidation price
+            typescript_file_path = os.path.join(
+                os.path.dirname(__file__), "zeta_typescript.ts"
+            )
 
-        # Compile & Run the TypeScript code to JavaScript
-        result = subprocess.run(
-            [
-                "npx",
-                "ts-node",
-                typescript_file_path,
-                "--endpoint",
-                self.zeta_user_client_manager.zeta_client.endpoint,
-                "--network",
-                self.zeta_user_client_manager.zeta_client.network.__str__().lower(),
-                "--user_pubkey",
-                self.user_pubkey.__str__(),
-            ],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-        print(result.stdout, result.stderr)
+            # Compile & Run the TypeScript code to JavaScript
+            result = subprocess.run(
+                [
+                    "npx",
+                    "ts-node",
+                    typescript_file_path,
+                    "--endpoint",
+                    self.zeta_user_client_manager.zeta_client.endpoint,
+                    "--network",
+                    self.zeta_user_client_manager.zeta_client.network.__str__().lower(),
+                    "--user_pubkey",
+                    self.user_pubkey.__str__(),
+                ],
+                check=True,
+                text=True,
+                capture_output=True,
+            )
 
-        # Parse and print the output
-        output_lines = result.stdout.split("\n")
-        liquidation_price = None
-        for line in output_lines:
-            try:
-                if "liquidationPrice" in line:
-                    liquidation_price = float(line.split(":")[1].strip())
-            except json.JSONDecodeError:
-                continue
+            # Parse and print the output
+            output_lines = result.stdout.split("\n")
+            response = []
+            for line in output_lines:
+                try:
+                    if "Asset" in line:
+                        values = line.split(",")
+                        _ = values[0].split(":")[1].strip()
+                        index = int(values[1].split(":")[1].strip())
+                        liquidation_price = float(values[2].split(":")[1].strip())
+                        response.append(
+                            LiquidationPrice(
+                                market_index=index,
+                                liquidation_price=liquidation_price,
+                                asset=Asset.from_index(index),
+                            )
+                        )
+                except json.JSONDecodeError:
+                    continue
 
-        print("Risk Data:", liquidation_price)
-        return liquidation_price
+            print("Risk Data:", response)
+            return response
+        except Exception as e:
+            print(f"Error getting risk details: {e}")
+            traceback.print_exc()
+            return None
 
     async def get_user_perpetual_positions(
         self,
     ) -> Optional[List[CustomPerpPosition]]:
-        await self.init_zeta_resource()
         try:
+            await self.init_zeta_resource()
             response = []
             for asset, position in self.account_risk_summary.positions.items():
                 if position.size == 0:
@@ -140,7 +148,9 @@ class ZetaUserPortfolio:
                         market_index=asset.to_index(),
                         symbol=asset.__str__(),
                         current_price=self.account_risk_summary.mark_prices.get(asset),
-                        liquidation_price=self.liquidation_price,
+                        liquidation_price=self.liquidation_price[
+                            asset.to_index()
+                        ].liquidation_price,
                         type="perp",
                         chain="Solana",
                         platform="Zeta",

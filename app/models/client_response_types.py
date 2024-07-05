@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 from pydantic import BaseModel
 
 from app.constants.drift_constants import spot_balance_type, spot_category
@@ -17,9 +18,8 @@ class CustomPerpPosition(BaseModel):
     comment: str = "Drift perp position"
 
 
-
 class CustomSpotPosition(BaseModel):
-    scaled_balance: int
+    scaled_balance: float
     market_index: int
     symbol: str
     current_price: float
@@ -29,7 +29,6 @@ class CustomSpotPosition(BaseModel):
     platform: str = "Drift"
     comment: str = "Drift collateral"
     category: str = spot_category
-
 
 
 class CustomUnrealizedPnLPosition(BaseModel):

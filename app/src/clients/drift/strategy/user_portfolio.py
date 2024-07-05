@@ -295,7 +295,9 @@ class DriftUserPortfolio:
             print(f"Error in getting user positions: {e}")
             return None
 
-    async def get_user_unrealized_pnl(self) -> Optional[List[CustomUnrealizedPnLPosition]]:
+    async def get_user_unrealized_pnl(
+        self,
+    ) -> Optional[List[CustomUnrealizedPnLPosition]]:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
@@ -334,7 +336,7 @@ class DriftUserPortfolio:
                             unrealized_pnl = drift_user_client.get_unrealized_pnl(
                                 market_index=marketIndex
                             )
-                            if unrealized_pnl is None:
+                            if unrealized_pnl is None or unrealized_pnl == 0:
                                 continue
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
