@@ -1,7 +1,9 @@
-from typing import Dict, List, Union
+import asyncio
+from typing import Dict, List, Tuple, Union
 
 from fastapi import HTTPException
 
+from app.constants.error import ClientPositionError
 from app.handler.position import PositionFactory
 from app.models.client_response_types import (
     CustomPerpPosition,
@@ -63,18 +65,37 @@ class Positions:
             print(f"Error in populating response perp positions: {e}")
             return []
 
-    async def get_all_perp_positions(self) -> List[ResponsePerpPosition]:
-        perp_positions = await self.user_portfolio.get_user_perpetual_positions()
-        if perp_positions is None:
-            raise Exception("Error in fetching perp positions")
-        drift_response = self._populate_response_perp_positions(perp_positions)
-        zeta_perp_positions = (
-            await self.zeta_user_portfolio.get_user_perpetual_positions()
-        )
-        if zeta_perp_positions is None:
-            raise Exception("Error in fetching zeta perp positions")
-        zeta_response = self._populate_response_perp_positions(zeta_perp_positions)
-        return drift_response + zeta_response
+    async def get_perp_positions(
+        self, client, error_enum
+    ) -> List[Tuple[List[ResponsePerpPosition], List[ClientPositionError]]]:
+        try:
+            perp_positions = await client.get_user_perpetual_positions()
+            if perp_positions is None:
+                return [
+                    [],
+                    [ClientPositionError(error_enum.PERP_POSITION_NOT_FOUND)],
+                ]  # [ClientPositionError(error_enum.PERP_POSITION_NOT_FOUND)]
+            response = self._populate_response_perp_positions(perp_positions)
+            return [response, []]
+        except Exception as e:
+            print(f"Error in getting perp positions: {e}")
+            return [[], [ClientPositionError(error_enum.PERP_POSITION_NOT_FOUND)]]
+
+    async def get_all_perp_positions(
+        self,
+    ) -> Tuple[List[ResponsePerpPosition], List[ClientPositionError]]:
+        try:
+            drift_future = self.get_perp_positions(
+                self.user_portfolio, ClientPositionError.DriftPositionError
+            )
+            zeta_future = self.get_perp_positions(
+                self.zeta_user_portfolio, ClientPositionError.ZetaPositionError
+            )
+            drift_response, zeta_response = asyncio.gather(drift_future, zeta_future)
+            return drift_response[0] + zeta_response[0], drift_response[1] + zeta_response[1]
+        except Exception as e:
+            print(f"Error in getting all perp positions: {e}")
+            return [], [ClientPositionError.DriftPositionError.PERP_POSITION_NOT_FOUND]
 
     def _populate_response_spot_positions(
         self, spot_positions: List[CustomSpotPosition]
@@ -91,13 +112,32 @@ class Positions:
             print(f"Error in populating response spot positions: {e}")
             return []
 
-    async def get_all_spot_positions(self):
-        spot_positions = await self.user_portfolio.get_user_spot_positions()
-        if spot_positions is not None:
+    async def get_spot_positions(self, client, error_enum) -> List[Tuple[List[ResponseSpotPosition], List[ClientPositionError]]]:
+        try:
+            spot_positions = await client.get_user_spot_positions()
+            if spot_positions is None:
+                return [
+                    [],
+                    [ClientPositionError(error_enum.SPOT_POSITION_NOT_FOUND)],
+                ]  # [ClientPositionError(error_enum.SPOT_POSITION_NOT_FOUND)]
             response = self._populate_response_spot_positions(spot_positions)
-            return response
-        return []
-
+            return [response, []]
+        except Exception as e:
+            print(f"Error in getting spot positions: {e}")
+            return [[], [ClientPositionError(error_enum.SPOT_POSITION_NOT_FOUND)]]
+    async def get_all_spot_positions(self) -> Tuple[List[ResponseSpotPosition], List[ClientPositionError]]:
+        try:
+            drift_spot_future = self.get_spot_positions(
+                self.user_portfolio, ClientPositionError.DriftPositionError
+            )
+            zeta_spot_future = self.get_spot_positions(
+                self.zeta_user_portfolio, ClientPositionError.ZetaPositionError
+            )
+            drift_response, zeta_response = asyncio.gather(drift_spot_future, zeta_spot_future)
+            return drift_response[0] + zeta_response[0], drift_response[1] + zeta_response[1]
+        except Exception as e:
+            print(f"Error in getting all spot positions: {e}")
+            return [], [ClientPositionError.DriftPositionError.SPOT_POSITION_NOT_FOUND]
     def _populate_unrealized_pnl_positions(
         self, unrealized_pnl_positions: List[CustomUnrealizedPnLPosition]
     ) -> List[ResponseUnrealizedPnLPosition]:
@@ -117,28 +157,33 @@ class Positions:
             print(f"Error in populating response unrealized pnl positions: {e}")
             return []
 
-    async def get_all_unrealized_pnl_positions(self):
+    async def get_unrealized_pnl_positions(self, client, error_enum) -> List[Tuple[List[ResponseUnrealizedPnLPosition], List[ClientPositionError]]]:
         try:
-            unrealized_pnl_positions = (
-                await self.user_portfolio.get_user_unrealized_pnl()
-            )
+            unrealized_pnl_positions = await client.get_user_unrealized_pnl()
             if unrealized_pnl_positions is None:
-                raise Exception("Error in fetching unrealized pnl positions for drift")
-            drift_response = self._populate_unrealized_pnl_positions(
-                unrealized_pnl_positions
-            )
-            zeta_unrealized_pnl_positions = (
-                await self.zeta_user_portfolio.get_user_unrealized_pnl()
-            )
-            if zeta_unrealized_pnl_positions is None:
-                raise Exception("Error in fetching unrealized pnl positions for zeta")
-            zeta_response = self._populate_unrealized_pnl_positions(
-                zeta_unrealized_pnl_positions
-            )
-            return drift_response + zeta_response
+                return [
+                    [],
+                    [ClientPositionError(error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND)],
+                ]  # [ClientPositionError(error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND)]
+            response = self._populate_unrealized_pnl_positions(unrealized_pnl_positions)
+            return [response, []]
         except Exception as e:
             print(f"Error in getting unrealized pnl positions: {e}")
-            return []
+            return [[], [ClientPositionError(error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND)]]
+
+    async def get_all_unrealized_pnl_positions(self) -> Tuple[List[ResponseUnrealizedPnLPosition], List[ClientPositionError]]:
+        try:
+            drift_unrealized_pnl_future = self.get_unrealized_pnl_positions(
+                self.user_portfolio, ClientPositionError.DriftPositionError
+            )
+            zeta_unrealized_pnl_future = self.get_unrealized_pnl_positions(
+                self.zeta_user_portfolio, ClientPositionError.ZetaPositionError
+            )
+            drift_response, zeta_response = asyncio.gather(drift_unrealized_pnl_future, zeta_unrealized_pnl_future)
+            return drift_response[0] + zeta_response[0], drift_response[1] + zeta_response[1]
+        except Exception as e:
+            print(f"Error in getting all unrealized pnl positions: {e}")
+            return [], [ClientPositionError.DriftPositionError.UNREALIZED_PNL_POSITION_NOT_FOUND]
 
     async def get_all_positions(
         self,
@@ -153,8 +198,8 @@ class Positions:
         ],
     ]:
         await self.initialize_user_portfolio()
-        perp_positions = await self.get_all_perp_positions()
-        spot_positions = await self.get_all_spot_positions()
+        perp_positions, perp_errors = await self.get_all_perp_positions()
+        spot_positions, spot_error = await self.get_all_spot_positions()
         unrealized_pnl_positions = await self.get_all_unrealized_pnl_positions()
         return {
             "perp_positions": perp_positions,
