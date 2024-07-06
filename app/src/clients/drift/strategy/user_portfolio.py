@@ -6,6 +6,7 @@ from driftpy.drift_user import BASE_PRECISION, QUOTE_PRECISION, DriftUser
 from driftpy.drift_user_stats import DriftUserStats
 from driftpy.types import PerpPosition, SpotPosition
 
+from app.constants.common import DriftUserPortfolioConstants, Symbols
 from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
@@ -322,12 +323,11 @@ class DriftUserPortfolio:
                                 continue
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
-                                symbol=self.current_market_data.get("perp").get(
-                                    marketIndex
-                                ),
-                                type="perp",
+                                symbol=Symbols.UDSC.value,
+                                type=DriftUserPortfolioConstants.perp_type.value,
                                 market_index=marketIndex,
-                                category="both",
+                                category=DriftUserPortfolioConstants.both_category.value,
+                                comment=f"Drift UPnL on {self.current_market_data.get('perp').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)
                         for marketIndex in range(
@@ -340,11 +340,11 @@ class DriftUserPortfolio:
                                 continue
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
-                                symbol=self.current_market_data.get("spot").get(
-                                    marketIndex
-                                ),
-                                type="spot",
+                                symbol=Symbols.UDSC.value,
+                                type=DriftUserPortfolioConstants.spot_type.value,
                                 market_index=marketIndex,
+                                category=DriftUserPortfolioConstants.both_category.value,
+                                comment=f"Drift UPnL on {self.current_market_data.get('spot').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)
                 filtered_data = filter_fields_for_pydantic_model(
