@@ -229,6 +229,18 @@ class Positions:
                 ClientPositionError.GENERAL_POSITION_ERROR.value.UPNL_POSITION_NOT_FOUND.value
             ]
 
+    def filter_small_positions(
+        self, positions: List[Dict[str, any]]
+    ) -> List[Dict[str, any]]:
+        try:
+            for position in positions:
+                if position.notional_usd < 1 and position.margin_usd < 1:
+                    positions.remove(position)
+            return positions
+        except Exception as e:
+            logger.error(f"Error in filtering small positions: {e}", exc_info=True)
+            return positions
+
     async def get_all_positions(
         self,
     ) -> Dict[str, List[Dict[str, any]]]:
@@ -239,8 +251,11 @@ class Positions:
             unrealized_pnl_positions, upnl_errors = (
                 await self.get_all_unrealized_pnl_positions()
             )
+            filtered_all_positions = self.filter_small_positions(
+                positions=perp_positions + spot_positions + unrealized_pnl_positions
+            )
             return {
-                "positions": perp_positions + spot_positions + unrealized_pnl_positions,
+                "positions": filtered_all_positions,
                 "errors": perp_errors + spot_error + upnl_errors,
             }
         except Exception as e:
