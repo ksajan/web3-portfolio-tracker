@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import traceback
 from typing import List, Optional
 
 import anchorpy
@@ -20,6 +19,7 @@ from app.models.client_response_types import (
 from app.models.clients import LiquidationPrice
 from app.src.clients.zeta.strategy.zeta_user_client import ZetaUserClientManager
 from app.src.loader import env_vars
+from app.src.logger.logger import logger
 
 SOLANA_MAINNET_RPC = env_vars.SOLANA_MAINNET_RPC_URL
 SOLANA_DEVNET_RPC = env_vars.SOLANA_DEVNET_RPC_URL
@@ -47,7 +47,7 @@ class ZetaUserPortfolio:
             )
             return cls(user_pubkey, zeta_user_client_manager)
         except Exception as e:
-            print(f"Error creating UserPortfolio: {e}")
+            logger.error(f"Error creating UserPortfolio: {e}")
             raise e
 
     async def get_user_cross_margin_account(self) -> CrossMarginAccount:
@@ -58,7 +58,6 @@ class ZetaUserPortfolio:
             commitment=self.zeta_user_client_manager.zeta_client.connection.commitment,
             program_id=self.zeta_user_client_manager.zeta_client.exchange.program_id,
         )
-        print(marginAccountData.to_json())
         return marginAccountData
 
     async def get_user_risk_summary(self) -> AccountRiskSummary:
@@ -77,8 +76,7 @@ class ZetaUserPortfolio:
             )
             return accountRiskSummary
         except Exception as e:
-            print(f"Error getting user risk summary: {e}")
-            traceback.print_exc()
+            logger.error(f"Error getting user risk summary: {e}")
             return None
 
     async def get_risk_details(self) -> Optional[List[LiquidationPrice]]:
@@ -128,8 +126,7 @@ class ZetaUserPortfolio:
 
             return response
         except Exception as e:
-            print(f"Error getting risk details: {e}")
-            traceback.print_exc()
+            logger.error(f"Error getting risk details: {e}")
             return None
 
     async def get_user_perpetual_positions(
@@ -160,7 +157,7 @@ class ZetaUserPortfolio:
                 )
             return response
         except Exception as e:
-            print(f"Error getting user positions: {e}")
+            logger.error(f"Error getting user positions: {e}")
             return None
 
     async def get_user_unrealized_pnl(

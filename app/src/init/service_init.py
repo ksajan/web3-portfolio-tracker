@@ -7,6 +7,7 @@ from app.constants.networks import Networks
 from app.src.clients.drift.clients.drift_client import DriftClientManager
 from app.src.clients.zeta.clients.zeta_client import ZetaClientManager
 from app.src.loader.constants import async_clients
+from app.src.logger.logger import logger
 
 
 def register_async_clients(client_type: str, network_type: str, skip: bool = False):
@@ -29,7 +30,7 @@ def set_drift_mainnet_client() -> Optional[DriftClient]:
             )
         return mainnet_drift_client
     except Exception as e:
-        print(f"Error in setting drift client: {e}")
+        logger.error(f"Error in setting drift client: {e}")
         return None
 
 
@@ -44,8 +45,10 @@ def set_drift_devnet_client() -> Optional[DriftClient]:
             )
         return devnet_drift_client
     except Exception as e:
-        print(f"Error in setting drift client: {e}")
+        logger.error(f"Error in setting drift client: {e}")
         return None
+
+
 @register_async_clients(client_type="zeta_client", network_type="mainnet")
 def set_zeta_mainnet_client() -> Optional[Client]:
     try:
@@ -53,5 +56,5 @@ def set_zeta_mainnet_client() -> Optional[Client]:
         mainnet_zeta_client = mainnet_zeta_client_object.get_zeta_client()
         return mainnet_zeta_client
     except Exception as e:
-        print(f"Error in setting zeta client: {e}")
+        logger.error(f"Error in setting zeta client: {e}")
         return None

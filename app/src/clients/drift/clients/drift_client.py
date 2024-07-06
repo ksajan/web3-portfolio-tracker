@@ -9,6 +9,7 @@ from solders.keypair import Keypair  # type: ignore
 import app.src.loader.env_vars as env_vars
 from app.constants.common import DriftEnv
 from app.constants.networks import Networks
+from app.src.logger.logger import logger
 
 SOLANA_DEVNET_RPC_URL = env_vars.SOLANA_DEVNET_RPC_URL
 SOLANA_MAINNET_RPC_URL = env_vars.SOLANA_MAINNET_RPC_URL
@@ -73,7 +74,7 @@ class DriftClientManager:
             )
             return drift_client
         except Exception as e:
-            print(f"Error in getting drift client: {e}")
+            logger.error(f"Error in getting drift client: {e}")
             return None
 
     async def subscribe(self, drift_client: DriftClient) -> None:

@@ -1,9 +1,10 @@
-from pydantic import BaseModel, ValidationError
-from typing import Any, Dict, List, TypeVar, Type
+from typing import Any, Dict, List, Type, TypeVar
 
 from driftpy.drift_client import PerpPosition, SpotPosition
+from pydantic import BaseModel, ValidationError
 
 from app.models.client_response_types import CustomPerpPosition, CustomSpotPosition
+from app.src.logger.logger import logger
 
 
 def convert_dataclass_to_dict(dataclass_object):
@@ -15,7 +16,7 @@ def convert_dict_to_dataclass(dataclassObject, data):
 
 
 def convert_perp_position_to_response_perp_position(
-        perp_position: PerpPosition, data: dict
+    perp_position: PerpPosition, data: dict
 ) -> CustomPerpPosition:
     perp_position_dict = convert_dataclass_to_dict(perp_position)
     for key, value in data.items():
@@ -24,7 +25,7 @@ def convert_perp_position_to_response_perp_position(
 
 
 def convert_spot_position_to_custom_spot_position(
-        spot_position: SpotPosition, data: dict
+    spot_position: SpotPosition, data: dict
 ) -> CustomSpotPosition:
     spot_position_dict = convert_dataclass_to_dict(spot_position)
     for key, value in data.items():
@@ -39,10 +40,12 @@ def update_fields(instance: Any, field_name: str, field_new_value: Any):
         raise AttributeError(f"{instance} has no attribute {field_name}")
 
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
-def filter_fields_for_pydantic_model(data: List[Dict[str, Any]], target_class: Type[T]) -> List[T]:
+def filter_fields_for_pydantic_model(
+    data: List[Dict[str, Any]], target_class: Type[T]
+) -> List[T]:
     try:
         if not issubclass(target_class, BaseModel):
             raise ValueError(f"{target_class} is not a subclass of pydantic.BaseModel")
@@ -54,10 +57,12 @@ def filter_fields_for_pydantic_model(data: List[Dict[str, Any]], target_class: T
                 model_instance = target_class(**data_dict)
                 filtered_data.append(model_instance)
             except ValidationError as e:
-                print(f"Validation error: {e}")
+                logger.error(f"Validation error: {e}")
                 continue  # Skip invalid data_dict
 
         return filtered_data
     except Exception as e:
-        print(f"Error in filtering fields and transforming the Pydantic model object: {e}")
+        logger.error(
+            f"Error in filtering fields and transforming the Pydantic model object: {e}"
+        )
         return []

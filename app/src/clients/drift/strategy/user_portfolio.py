@@ -23,6 +23,7 @@ from app.src.clients.drift.utils.helper import (
     filter_fields_for_pydantic_model,
     update_fields,
 )
+from app.src.logger.logger import logger
 
 
 class DriftUserPortfolio:
@@ -66,7 +67,7 @@ class DriftUserPortfolio:
                 drift_strategy_object,
             )
         except Exception as e:
-            print(f"Error in UserPortfolio.create: {e}")
+            logger.error(f"Error in UserPortfolio.create: {e}")
             raise e
 
     def get_user_total_sub_accounts(
@@ -219,7 +220,7 @@ class DriftUserPortfolio:
                 return filtered_data
 
         except Exception as e:
-            print(f"Error in getting user positions: {e}")
+            logger.error(f"Error in getting user positions: {e}")
             return None
 
     def transform_spot_position_values(self, spot_position: SpotPosition):
@@ -293,7 +294,7 @@ class DriftUserPortfolio:
                 return filtered_data
 
         except Exception as e:
-            print(f"Error in getting user positions: {e}")
+            logger.error(f"Error in getting user positions: {e}")
             return None
 
     async def get_user_unrealized_pnl(
@@ -352,5 +353,5 @@ class DriftUserPortfolio:
                 )
                 return filtered_data
         except Exception as e:
-            print(f"Error in getting unrealized pnl: {e}")
+            logger.error(f"Error in getting unrealized pnl: {e}")
             return None

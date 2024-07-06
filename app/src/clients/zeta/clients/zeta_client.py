@@ -8,6 +8,7 @@ from zetamarkets_py.types import Asset, Network
 
 import app.src.loader.env_vars as env_vars
 from app.constants.networks import Networks
+from app.src.logger.logger import logger
 
 SOLANA_DEVNET_RPC_URL = env_vars.SOLANA_DEVNET_RPC_URL
 SOLANA_MAINNET_RPC_URL = env_vars.SOLANA_MAINNET_RPC_URL
@@ -54,7 +55,7 @@ class ZetaClientManager:
             # zeta_client.get_account_risk_summary()
             return None
         except Exception as e:
-            print(f"Error getting Zeta client: {e}")
+            logger.error(f"Error getting Zeta client: {e}")
             return None
 
     async def subscribe(self, zeta_client: Optional[Client]) -> Client:
