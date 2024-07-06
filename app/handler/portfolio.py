@@ -19,12 +19,11 @@ from app.models.response_positions import (
 )
 from app.src.clients.drift.strategy.user_portfolio import DriftUserPortfolio
 from app.src.clients.zeta.strategy.user_portfolio import ZetaUserPortfolio
+from app.src.logger.logger import logger
 
 
 class Positions:
     def __init__(self, wallet_address: str, clients: ProtocolClients):
-        # self.zeta_user_portfolio = None
-        # self.user_portfolio = None
         self.positions = []
         self.wallet_address = wallet_address
         self.drift_client = clients.drift_client
@@ -62,7 +61,9 @@ class Positions:
                 response_perp_positions.append(response_perp_position)
             return response_perp_positions
         except Exception as e:
-            print(f"Error in populating response perp positions: {e}")
+            logger.error(
+                f"Error in populating response perp positions: {e}", exc_info=True
+            )
             return []
 
     async def get_perp_positions(
@@ -78,8 +79,7 @@ class Positions:
             response = self._populate_response_perp_positions(perp_positions)
             return [response, []]
         except Exception as e:
-            print(f"Error in getting perp positions: {e}")
-            traceback.print_exc()
+            logger.error(f"Error in getting perp positions: {e}", exc_info=True)
             return [[], [(error_enum.PERP_POSITION_NOT_FOUND.value)]]
 
     async def get_all_perp_positions(
@@ -100,8 +100,7 @@ class Positions:
                 drift_response[1] + zeta_response[1],
             )
         except Exception as e:
-            print(f"Error in getting all perp positions: {e}")
-            traceback.print_exc()
+            logger.error(f"Error in getting all perp positions: {e}", exc_info=True)
             return [], [
                 ClientPositionError.GENERAL_POSITION_ERROR.value.PERP_POSITION_NOT_FOUND
             ]
@@ -118,7 +117,9 @@ class Positions:
                 response_spot_positions.append(response_spot_position)
             return response_spot_positions
         except Exception as e:
-            print(f"Error in populating response spot positions: {e}")
+            logger.error(
+                f"Error in populating response spot positions: {e}", exc_info=True
+            )
             return []
 
     async def get_spot_positions(
@@ -134,8 +135,7 @@ class Positions:
             response = self._populate_response_spot_positions(spot_positions)
             return [response, []]
         except Exception as e:
-            print(f"Error in getting spot positions: {e}")
-            traceback.print_exc()
+            logger.error(f"Error in getting spot positions: {e}", exc_info=True)
             return [[], [(error_enum.SPOT_POSITION_NOT_FOUND.value)]]
 
     async def get_all_spot_positions(
@@ -156,8 +156,7 @@ class Positions:
                 drift_response[1] + zeta_response[1],
             )
         except Exception as e:
-            print(f"Error in getting all spot positions: {e}")
-            traceback.print_exc()
+            logger.error(f"Error in getting all spot positions: {e}", exc_info=True)
             return [], [
                 ClientPositionError.GENERAL_POSITION_ERROR.value.SPOT_POSITION_NOT_FOUND
             ]
@@ -178,7 +177,10 @@ class Positions:
                 )
             return response_unrealized_pnl_positions
         except Exception as e:
-            print(f"Error in populating response unrealized pnl positions: {e}")
+            logger.error(
+                f"Error in populating response unrealized pnl positions: {e}",
+                exc_info=True,
+            )
             return []
 
     async def get_unrealized_pnl_positions(
@@ -194,7 +196,9 @@ class Positions:
             response = self._populate_unrealized_pnl_positions(unrealized_pnl_positions)
             return [response, []]
         except Exception as e:
-            print(f"Error in getting unrealized pnl positions: {e}")
+            logger.error(
+                f"Error in getting unrealized pnl positions: {e}", exc_info=True
+            )
             return [
                 [],
                 [(error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND.value)],
@@ -218,7 +222,9 @@ class Positions:
                 drift_response[1] + zeta_response[1],
             )
         except Exception as e:
-            print(f"Error in getting all unrealized pnl positions: {e}")
+            logger.error(
+                f"Error in getting all unrealized pnl positions: {e}", exc_info=True
+            )
             return [], [
                 ClientPositionError.GENERAL_POSITION_ERROR.value.UPNL_POSITION_NOT_FOUND.value
             ]
@@ -226,13 +232,23 @@ class Positions:
     async def get_all_positions(
         self,
     ) -> Dict[str, List[Dict[str, any]]]:
-        await self.initialize_user_portfolio()
-        perp_positions, perp_errors = await self.get_all_perp_positions()
-        spot_positions, spot_error = await self.get_all_spot_positions()
-        unrealized_pnl_positions, upnl_errors = (
-            await self.get_all_unrealized_pnl_positions()
-        )
-        return {
-            "positions": perp_positions + spot_positions + unrealized_pnl_positions,
-            "errors": perp_errors + spot_error + upnl_errors,
-        }
+        try:
+            await self.initialize_user_portfolio()
+            perp_positions, perp_errors = await self.get_all_perp_positions()
+            spot_positions, spot_error = await self.get_all_spot_positions()
+            unrealized_pnl_positions, upnl_errors = (
+                await self.get_all_unrealized_pnl_positions()
+            )
+            return {
+                "positions": perp_positions + spot_positions + unrealized_pnl_positions,
+                "errors": perp_errors + spot_error + upnl_errors,
+            }
+        except Exception as e:
+            logger.error(
+                f"Error in getting positions for wallet: {self.wallet_address} with error: {e}",
+                exc_info=True,
+            )
+            return {
+                "positions": [],
+                "errors": [ClientPositionError.GENERAL_POSITION_ERROR.value],
+            }
