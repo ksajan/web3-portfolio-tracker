@@ -241,6 +241,42 @@ class Positions:
             logger.error(f"Error in filtering small positions: {e}", exc_info=True)
             return positions
 
+    ## FIXME: Fix this function where when used with asyncio.gather to call all the functions concurrently, it creates new resources such running the typescript twice which increases the time by 3~5 seconds
+    # async def get_all_positions(self) -> Dict[str, List[Dict[str, any]]]:
+    #     try:
+    #         await self.initialize_user_portfolio()
+
+    #         # Run the tasks concurrently
+    #         perp_task = self.get_all_perp_positions()
+    #         spot_task = self.get_all_spot_positions()
+    #         upnl_task = self.get_all_unrealized_pnl_positions()
+
+    #         results = await asyncio.gather(
+    #             perp_task, spot_task, upnl_task, return_exceptions=True
+    #         )
+
+    #         perp_positions, perp_errors = results[0]
+    #         spot_positions, spot_error = results[1]
+    #         unrealized_pnl_positions, upnl_errors = results[2]
+
+    #         filtered_all_positions = self.filter_small_positions(
+    #             positions=perp_positions + spot_positions + unrealized_pnl_positions
+    #         )
+
+    #         return {
+    #             "positions": filtered_all_positions,
+    #             "errors": perp_errors + spot_error + upnl_errors,
+    #         }
+
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Error in getting positions for wallet: {self.wallet_address} with error: {e}",
+    #             exc_info=True,
+    #         )
+    #         return {
+    #             "positions": [],
+    #             "errors": [ClientPositionError.GENERAL_POSITION_ERROR],
+    #         }
     async def get_all_positions(
         self,
     ) -> Dict[str, List[Dict[str, any]]]:
