@@ -74,7 +74,7 @@ class DriftClientManager:
             )
             return drift_client
         except Exception as e:
-            logger.error(f"Error in getting drift client: {e}")
+            logger.error(f"Error in getting drift client: {e}", exc_info=True)
             return None
 
     async def subscribe(self, drift_client: DriftClient) -> None:

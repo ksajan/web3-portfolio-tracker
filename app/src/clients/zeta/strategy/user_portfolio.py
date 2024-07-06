@@ -47,7 +47,7 @@ class ZetaUserPortfolio:
             )
             return cls(user_pubkey, zeta_user_client_manager)
         except Exception as e:
-            logger.error(f"Error creating UserPortfolio: {e}")
+            logger.error(f"Error creating UserPortfolio: {e}", exc_info=True)
             raise e
 
     async def get_user_cross_margin_account(self) -> CrossMarginAccount:
@@ -76,7 +76,7 @@ class ZetaUserPortfolio:
             )
             return accountRiskSummary
         except Exception as e:
-            logger.error(f"Error getting user risk summary: {e}")
+            logger.error(f"Error getting user risk summary: {e}", exc_info=True)
             return None
 
     async def get_risk_details(self) -> Optional[List[LiquidationPrice]]:
@@ -126,7 +126,7 @@ class ZetaUserPortfolio:
 
             return response
         except Exception as e:
-            logger.error(f"Error getting risk details: {e}")
+            logger.error(f"Error getting risk details: {e}", exc_info=True)
             return None
 
     async def get_user_perpetual_positions(
@@ -157,7 +157,7 @@ class ZetaUserPortfolio:
                 )
             return response
         except Exception as e:
-            logger.error(f"Error getting user positions: {e}")
+            logger.error(f"Error getting user positions: {e}", exc_info=True)
             return None
 
     async def get_user_unrealized_pnl(

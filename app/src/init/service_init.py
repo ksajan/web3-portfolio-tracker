@@ -30,7 +30,7 @@ def set_drift_mainnet_client() -> Optional[DriftClient]:
             )
         return mainnet_drift_client
     except Exception as e:
-        logger.error(f"Error in setting drift client: {e}")
+        logger.error(f"Error in setting drift client: {e}", exc_info=True)
         return None
 
 
@@ -45,7 +45,7 @@ def set_drift_devnet_client() -> Optional[DriftClient]:
             )
         return devnet_drift_client
     except Exception as e:
-        logger.error(f"Error in setting drift client: {e}")
+        logger.error(f"Error in setting drift client: {e}", exc_info=True)
         return None
 
 
@@ -56,5 +56,5 @@ def set_zeta_mainnet_client() -> Optional[Client]:
         mainnet_zeta_client = mainnet_zeta_client_object.get_zeta_client()
         return mainnet_zeta_client
     except Exception as e:
-        logger.error(f"Error in setting zeta client: {e}")
+        logger.error(f"Error in setting zeta client: {e}", exc_info=True)
         return None

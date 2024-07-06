@@ -55,7 +55,7 @@ class ZetaClientManager:
             # zeta_client.get_account_risk_summary()
             return None
         except Exception as e:
-            logger.error(f"Error getting Zeta client: {e}")
+            logger.error(f"Error getting Zeta client: {e}", exc_info=True)
             return None
 
     async def subscribe(self, zeta_client: Optional[Client]) -> Client:

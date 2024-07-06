@@ -28,7 +28,7 @@ async def subscribe_all_clients():
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
     except Exception as e:
-        logger.error(f"Error in subscribing to client: {e}")
+        logger.error(f"Error in subscribing to client: {e}", exc_info=True)
 
 
 async def clear_internal_resources():
@@ -53,4 +53,4 @@ async def clear_internal_resources():
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
     except Exception as e:
-        logger.error(f"Error in clearing internal resources: {e}")
+        logger.error(f"Error in clearing internal resources: {e}", exc_info=True)

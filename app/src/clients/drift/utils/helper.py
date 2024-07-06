@@ -57,12 +57,13 @@ def filter_fields_for_pydantic_model(
                 model_instance = target_class(**data_dict)
                 filtered_data.append(model_instance)
             except ValidationError as e:
-                logger.error(f"Validation error: {e}")
+                logger.error(f"Validation error: {e}", exc_info=True)
                 continue  # Skip invalid data_dict
 
         return filtered_data
     except Exception as e:
         logger.error(
-            f"Error in filtering fields and transforming the Pydantic model object: {e}"
+            f"Error in filtering fields and transforming the Pydantic model object: {e}",
+            exc_info=True,
         )
         return []
