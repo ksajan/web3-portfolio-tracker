@@ -35,6 +35,9 @@ COPY --chown=crypto-quants:crypto-quants requirements.txt /home/crypto-quants/re
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade -r /home/crypto-quants/requirements.txt
 
+# Install the zeta market pypi individually to resove the conflict
+RUN pip install --no-cache-dir --upgrade zetamarkets_py
+
 # Create application directory
 RUN mkdir /home/crypto-quants/app
 
