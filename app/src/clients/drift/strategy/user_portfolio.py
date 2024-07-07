@@ -325,7 +325,6 @@ class DriftUserPortfolio:
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
                                 symbol=Symbols.UDSC.value,
-                                type=DriftUserPortfolioConstants.perp_type.value,
                                 market_index=marketIndex,
                                 category=DriftUserPortfolioConstants.both_category.value,
                                 comment=f"Drift UPnL on {self.current_market_data.get('perp').get(marketIndex)}",

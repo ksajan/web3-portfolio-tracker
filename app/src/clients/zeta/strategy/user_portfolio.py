@@ -169,7 +169,6 @@ class ZetaUserPortfolio:
                 pnl=self.account_risk_summary.unrealized_pnl,
                 symbol="USDC",
                 market_index=0,
-                type="perp",
                 chain="Solana",
                 platform="Zeta",
                 comment="Zeta unrealized pnl position",

@@ -34,10 +34,10 @@ class CustomSpotPosition(BaseModel):
 class CustomUnrealizedPnLPosition(BaseModel):
     pnl: float
     symbol: str  # assuming USDC is used for unrealized PnL
-    type: str
     market_index: int
     current_price: float = 1.0  # using hard coded 1.0 is good enough
     liquidation_price: float = 0.0  # zero for UPnL positions
+    type: str = "spot"  # UPnL is a spot position always
     chain: str = "Solana"
     platform: str = "Drift"
     comment: str = "Drift UPnL"
