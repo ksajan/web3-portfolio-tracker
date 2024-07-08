@@ -1,4 +1,4 @@
-from typing import Any, Generic, List, Optional, TypeVar
+from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -16,7 +16,7 @@ from .enums import (
     TokenType,
     UseMethod,
 )
-from .options import DisplayOptions
+from .options import DisplayOptions, SearchAssetsOptions
 
 ## This is for Helius RPC request types
 T = TypeVar("T")
@@ -53,10 +53,10 @@ class GetAssetsByOwner(BaseModel):
 
 
 class NotFilter(BaseModel):
-    collections: Optional[List[str]] = None
-    owners: Optional[List[List[int]]] = None
-    creators: Optional[List[List[int]]] = None
-    authorities: Optional[List[List[int]]] = None
+    collections: Optional[list[str]] = None
+    owners: Optional[list[list[int]]] = None
+    creators: Optional[list[list[int]]] = None
+    authorities: Optional[list[list[int]]] = None
 
 
 class SearchAssets(BaseModel):
@@ -68,7 +68,7 @@ class SearchAssets(BaseModel):
     creator_address: Optional[str] = None
     creator_verified: Optional[bool] = None
     authority_address: Optional[str] = None
-    grouping: Optional[Tuple[str, str]] = None
+    grouping: Optional[tuple[str, str]] = None
     delegate: Optional[str] = None
     frozen: Optional[bool] = None
     supply: Optional[int] = None
@@ -89,7 +89,7 @@ class SearchAssets(BaseModel):
     options: Optional[SearchAssetsOptions] = Field(None, alias="displayOptions")
     cursor: Optional[str] = None
     name: Optional[str] = None
-    collections: Optional[List[str]] = None
+    collections: Optional[list[str]] = None
     token_type: Optional[TokenType] = None
     tree: Optional[str] = None
     collection_nft: Optional[bool] = None
@@ -138,7 +138,7 @@ class File(BaseModel):
     mime: Optional[str] = None
     cdn_uri: Optional[str] = None
     quality: Optional[FileQuality] = None
-    contexts: Optional[List[Context]] = None
+    contexts: Optional[list[Context]] = None
 
 
 class Attribute(BaseModel):
@@ -147,7 +147,7 @@ class Attribute(BaseModel):
 
 
 class Metadata(BaseModel):
-    attributes: Optional[List[Attribute]] = None
+    attributes: Optional[list[Attribute]] = None
     description: Optional[str] = None
     name: Optional[str] = None
     symbol: Optional[str] = None
@@ -162,7 +162,7 @@ class Links(BaseModel):
 class Content(BaseModel):
     schema: str = Field(..., alias="schema", default="")
     json_uri: str
-    files: Optional[List[File]] = None
+    files: Optional[list[File]] = None
     metadata: Metadata
     links: Optional[Links] = None
 
@@ -172,7 +172,7 @@ class Content(BaseModel):
 
 class Authorities(BaseModel):
     address: str
-    scopes: List[Scope]
+    scopes: list[Scope]
 
 
 class CollectionMetadata(BaseModel):
@@ -245,7 +245,7 @@ class GroupDefinition(BaseModel):
     group_key: str
     group_value: Optional[str] = None
     size: Optional[int] = None
-    asset_id: List[int]
+    asset_id: list[int]
 
 
 class MplCoreInfo(BaseModel):
@@ -258,11 +258,11 @@ class Asset(BaseModel):
     interface: Interface
     id: str
     content: Optional[Content] = None
-    authorities: Optional[List[Authorities]] = None
+    authorities: Optional[list[Authorities]] = None
     compression: Optional[Compression] = None
-    grouping: Optional[List[Group]] = None
+    grouping: Optional[list[Group]] = None
     royalty: Optional[Royalty] = None
-    creators: Optional[List[Creator]] = None
+    creators: Optional[list[Creator]] = None
     ownership: Ownership
     uses: Optional[Uses] = None
     supply: Optional[Supply] = None
@@ -292,8 +292,8 @@ class AssetList(BaseModel):
     before: Optional[str] = None
     after: Optional[str] = None
     cursor: Optional[str] = None
-    items: List[Asset]
-    errors: Optional[List[AssetError]] = None
+    items: list[Asset]
+    errors: Optional[list[AssetError]] = None
 
     class Config:
         allow_population_by_field_name = True
