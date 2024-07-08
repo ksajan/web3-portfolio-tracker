@@ -2,8 +2,8 @@ import uuid
 
 from fastapi import HTTPException
 
-from app.src.loader.constants import async_clients
 from app.models.clients import ProtocolClients
+from app.src.loader.constants import async_clients
 
 
 def get_drift_client(chain_type: str):
@@ -13,6 +13,8 @@ def get_drift_client(chain_type: str):
         return async_clients.get("drift_client").get(chain_type)
     else:
         raise HTTPException(status_code=400, detail="Invalid chain type")
+
+
 def get_clients_dataclass(chain_type: str) -> ProtocolClients:
     return ProtocolClients(
         drift_client=async_clients.get("drift_client").get(chain_type),
@@ -24,3 +26,7 @@ def generate_uuid(**kwargs) -> str:
     uuid_string = ""
     uuid_string = "".join([str(value) + "_" for key, value in kwargs.items()])
     return str(uuid.uuid3(uuid.NAMESPACE_URL, uuid_string))
+
+
+def generate_random_id() -> str:
+    return str(uuid.uuid4())
