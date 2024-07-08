@@ -239,7 +239,7 @@ class DriftUserPortfolio:
             spot_position, "open_asks", spot_position.open_asks / BASE_PRECISION
         )
 
-    async def get_user_spot_positions(self) -> Optional[list[CustomSpotPosition]]:
+    async def get_user_spot_positions(self) -> list[CustomSpotPosition] | None:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
@@ -297,7 +297,7 @@ class DriftUserPortfolio:
 
     async def get_user_unrealized_pnl(
         self,
-    ) -> Optional[list[CustomUnrealizedPnLPosition]]:
+    ) -> list[CustomUnrealizedPnLPosition] | None:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
