@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class PositionBase(BaseModel):
+class ResponsePositionBase(BaseModel):
     id: str  # Market Index
     account: str  # address of account
     price: float  # current price
