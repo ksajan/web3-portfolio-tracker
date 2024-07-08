@@ -1,5 +1,3 @@
-from typing import Optional
-
 from driftpy.drift_client import DriftClient
 from zetamarkets_py.client import Client
 
@@ -20,7 +18,7 @@ def register_async_clients(client_type: str, network_type: str, skip: bool = Fal
 
 
 @register_async_clients(client_type="drift_client", network_type="mainnet")
-def set_drift_mainnet_client() -> Optional[DriftClient]:
+def set_drift_mainnet_client() -> DriftClient | None:
     try:
         mainnet_drift_client_object = DriftClientManager(chain_type="mainnet")
         mainnet_drift_client = mainnet_drift_client_object.get_drift_client()
@@ -35,7 +33,7 @@ def set_drift_mainnet_client() -> Optional[DriftClient]:
 
 
 @register_async_clients(client_type="drift_client", network_type="devnet", skip=True)
-def set_drift_devnet_client() -> Optional[DriftClient]:
+def set_drift_devnet_client() -> DriftClient | None:
     try:
         devnet_drift_client_object = DriftClientManager(chain_type="devnet")
         devnet_drift_client = devnet_drift_client_object.get_drift_client()
@@ -50,7 +48,7 @@ def set_drift_devnet_client() -> Optional[DriftClient]:
 
 
 @register_async_clients(client_type="zeta_client", network_type="mainnet")
-def set_zeta_mainnet_client() -> Optional[Client]:
+def set_zeta_mainnet_client() -> Client | None:
     try:
         mainnet_zeta_client_object = ZetaClientManager(chain_type="mainnet")
         mainnet_zeta_client = mainnet_zeta_client_object.get_zeta_client()

@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-from typing import List, Optional
 
 import anchorpy
 from solders.pubkey import Pubkey
@@ -79,7 +78,7 @@ class ZetaUserPortfolio:
             logger.error(f"Error getting user risk summary: {e}", exc_info=True)
             return None
 
-    async def get_risk_details(self) -> Optional[List[LiquidationPrice]]:
+    async def get_risk_details(self) -> list[LiquidationPrice] | None:
         try:
             # running the typescript code to get the liquidation price
             typescript_file_path = os.path.join(
@@ -131,7 +130,7 @@ class ZetaUserPortfolio:
 
     async def get_user_perpetual_positions(
         self,
-    ) -> Optional[List[CustomPerpPosition]]:
+    ) -> list[CustomPerpPosition] | None:
         try:
             await self.init_zeta_resource()
             response = []
@@ -162,7 +161,7 @@ class ZetaUserPortfolio:
 
     async def get_user_unrealized_pnl(
         self,
-    ) -> Optional[List[CustomUnrealizedPnLPosition]]:
+    ) -> list[CustomUnrealizedPnLPosition] | None:
 
         return [
             CustomUnrealizedPnLPosition(
@@ -176,6 +175,6 @@ class ZetaUserPortfolio:
             )
         ]
 
-    async def get_user_spot_positions(self) -> Optional[List[CustomSpotPosition]]:
+    async def get_user_spot_positions(self) -> list[CustomSpotPosition] | None:
         # return empty method for as zeta does not support spot positions
         return []

@@ -1,5 +1,3 @@
-from typing import Any, Dict, List
-
 from fastapi import HTTPException
 
 from app.handler.portfolio import Positions
@@ -8,11 +6,9 @@ from app.models.clients import ProtocolClients
 
 async def get_all_positions(
     wallet_address: str, clients: ProtocolClients
-) -> Dict[str, List[Any]]:
+) -> dict[str, list]:
     try:
-        position_object = Positions(
-            wallet_address=wallet_address, clients=clients
-        )
+        position_object = Positions(wallet_address=wallet_address, clients=clients)
         await position_object.initialize_user_portfolio()
         all_positions = await position_object.get_all_positions()
         if all_positions is None:

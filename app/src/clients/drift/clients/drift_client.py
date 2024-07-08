@@ -1,5 +1,3 @@
-from typing import Optional
-
 from anchorpy import Wallet
 from driftpy.drift_client import DriftClient
 from driftpy.keypair import load_keypair
@@ -63,7 +61,7 @@ class DriftClientManager:
         except Exception as e:
             raise ValueError(f"Error in getting rpc connection client: {e}")
 
-    def get_drift_client(self) -> Optional[DriftClient]:
+    def get_drift_client(self) -> DriftClient | None:
         try:
             connection = self.get_rpc_connection_client()
             wallet = self.get_dummy_wallet()
