@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from pydantic import BaseModel
 
 from app.constants.drift_constants import spot_balance_type, spot_category

@@ -1,10 +1,7 @@
-from typing import Optional
-
-import anchorpy
 from anchorpy import Wallet
 from solana.rpc.async_api import AsyncClient
 from zetamarkets_py.client import Client
-from zetamarkets_py.types import Asset, Network
+from zetamarkets_py.types import Network
 
 import app.src.loader.env_vars as env_vars
 from app.constants.networks import Networks
@@ -50,7 +47,7 @@ class ZetaClientManager:
         else:
             raise ValueError(f"Invalid chain type for drift client: {self.chain_type}")
 
-    def get_zeta_client(self) -> Optional[Client]:
+    def get_zeta_client(self) -> Client | None:
         try:
             # zeta_client.get_account_risk_summary()
             return None
@@ -58,7 +55,7 @@ class ZetaClientManager:
             logger.error(f"Error getting Zeta client: {e}", exc_info=True)
             return None
 
-    async def subscribe(self, zeta_client: Optional[Client]) -> Client:
+    async def subscribe(self, zeta_client: Client | None) -> Client:
         try:
             if zeta_client is not None:
                 return await zeta_client.load(

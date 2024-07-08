@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from driftpy.constants.numeric_constants import PRICE_PRECISION
 from driftpy.drift_client import DriftClient
 from driftpy.drift_user import BASE_PRECISION, QUOTE_PRECISION, DriftUser
@@ -77,7 +75,7 @@ class DriftUserPortfolio:
             self.drift_user_account_stats_client_manager.get_account().number_of_sub_accounts
         )
 
-    def get_all_markets(self) -> List:
+    def get_all_markets(self) -> list:
         return self.drift_user_client_manager_object.get_user_account().perp_positions
 
     def get_market_price(
@@ -170,7 +168,7 @@ class DriftUserPortfolio:
 
     async def get_user_perpetual_positions(
         self,
-    ) -> Optional[List[CustomPerpPosition]]:
+    ) -> list[CustomPerpPosition] | None:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
@@ -241,7 +239,7 @@ class DriftUserPortfolio:
             spot_position, "open_asks", spot_position.open_asks / BASE_PRECISION
         )
 
-    async def get_user_spot_positions(self) -> Optional[List[CustomSpotPosition]]:
+    async def get_user_spot_positions(self) -> Optional[list[CustomSpotPosition]]:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
@@ -299,7 +297,7 @@ class DriftUserPortfolio:
 
     async def get_user_unrealized_pnl(
         self,
-    ) -> Optional[List[CustomUnrealizedPnLPosition]]:
+    ) -> Optional[list[CustomUnrealizedPnLPosition]]:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()

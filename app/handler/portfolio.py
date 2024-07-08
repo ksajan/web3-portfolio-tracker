@@ -1,6 +1,5 @@
 import asyncio
 import traceback
-from typing import Dict, List, Tuple, Union
 
 from fastapi import HTTPException
 
@@ -50,8 +49,8 @@ class Positions:
         return perp_markets
 
     def _populate_response_perp_positions(
-        self, perp_positions: List[CustomPerpPosition]
-    ) -> List[ResponsePerpPosition]:
+        self, perp_positions: list[CustomPerpPosition]
+    ) -> list[ResponsePerpPosition]:
         try:
             response_perp_positions = []
             for perp_position in perp_positions:
@@ -68,7 +67,7 @@ class Positions:
 
     async def get_perp_positions(
         self, client, error_enum
-    ) -> List[Tuple[List[ResponsePerpPosition], List[str]]]:
+    ) -> list[tuple[list[ResponsePerpPosition], list[str]]]:
         try:
             perp_positions = await client.get_user_perpetual_positions()
             if perp_positions is None:
@@ -84,7 +83,7 @@ class Positions:
 
     async def get_all_perp_positions(
         self,
-    ) -> Tuple[List[ResponsePerpPosition], List[str]]:
+    ) -> tuple[list[ResponsePerpPosition], list[str]]:
         try:
             drift_future = self.get_perp_positions(
                 self.user_portfolio, ClientPositionError.DRIFT_POSITION_ERROR.value
@@ -106,8 +105,8 @@ class Positions:
             ]
 
     def _populate_response_spot_positions(
-        self, spot_positions: List[CustomSpotPosition]
-    ) -> List[ResponseSpotPosition]:
+        self, spot_positions: list[CustomSpotPosition]
+    ) -> list[ResponseSpotPosition]:
         try:
             response_spot_positions = []
             for spot_position in spot_positions:
@@ -124,7 +123,7 @@ class Positions:
 
     async def get_spot_positions(
         self, client, error_enum
-    ) -> List[Tuple[List[ResponseSpotPosition], List[str]]]:
+    ) -> list[tuple[list[ResponseSpotPosition], list[str]]]:
         try:
             spot_positions = await client.get_user_spot_positions()
             if spot_positions is None:
@@ -140,7 +139,7 @@ class Positions:
 
     async def get_all_spot_positions(
         self,
-    ) -> Tuple[List[ResponseSpotPosition], List[str]]:
+    ) -> tuple[list[ResponseSpotPosition], list[str]]:
         try:
             drift_spot_future = self.get_spot_positions(
                 self.user_portfolio, ClientPositionError.DRIFT_POSITION_ERROR.value
@@ -162,8 +161,8 @@ class Positions:
             ]
 
     def _populate_unrealized_pnl_positions(
-        self, unrealized_pnl_positions: List[CustomUnrealizedPnLPosition]
-    ) -> List[ResponseUnrealizedPnLPosition]:
+        self, unrealized_pnl_positions: list[CustomUnrealizedPnLPosition]
+    ) -> list[ResponseUnrealizedPnLPosition]:
         try:
             response_unrealized_pnl_positions = []
             for unrealized_pnl_position in unrealized_pnl_positions:
@@ -185,7 +184,7 @@ class Positions:
 
     async def get_unrealized_pnl_positions(
         self, client, error_enum
-    ) -> List[Tuple[List[ResponseUnrealizedPnLPosition], List[str]]]:
+    ) -> list[tuple[list[ResponseUnrealizedPnLPosition], list[str]]]:
         try:
             unrealized_pnl_positions = await client.get_user_unrealized_pnl()
             if unrealized_pnl_positions is None:
@@ -206,7 +205,7 @@ class Positions:
 
     async def get_all_unrealized_pnl_positions(
         self,
-    ) -> Tuple[List[ResponseUnrealizedPnLPosition], List[str]]:
+    ) -> tuple[list[ResponseUnrealizedPnLPosition], list[str]]:
         try:
             drift_unrealized_pnl_future = self.get_unrealized_pnl_positions(
                 self.user_portfolio, ClientPositionError.DRIFT_POSITION_ERROR.value
@@ -230,8 +229,8 @@ class Positions:
             ]
 
     def filter_small_positions(
-        self, positions: List[Dict[str, any]]
-    ) -> List[Dict[str, any]]:
+        self, positions: list[dict[str, any]]
+    ) -> list[dict[str, any]]:
         try:
             for position in positions:
                 if position.notional_usd < 1 and position.margin_usd < 1:
@@ -242,7 +241,7 @@ class Positions:
             return positions
 
     ## FIXME: Fix this function where when used with asyncio.gather to call all the functions concurrently, it creates new resources such running the typescript twice which increases the time by 3~5 seconds
-    # async def get_all_positions(self) -> Dict[str, List[Dict[str, any]]]:
+    # async def get_all_positions(self) -> dict[str, list[dict[str, any]]]:
     #     try:
     #         await self.initialize_user_portfolio()
 
@@ -279,7 +278,7 @@ class Positions:
     #         }
     async def get_all_positions(
         self,
-    ) -> Dict[str, List[Dict[str, any]]]:
+    ) -> dict[str, list[dict[str, any]]]:
         try:
             await self.initialize_user_portfolio()
             perp_positions, perp_errors = await self.get_all_perp_positions()

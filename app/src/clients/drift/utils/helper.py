@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Type, TypeVar
 
 from driftpy.drift_client import PerpPosition, SpotPosition
 from pydantic import BaseModel, ValidationError
@@ -33,7 +33,7 @@ def convert_spot_position_to_custom_spot_position(
     return convert_dict_to_dataclass(CustomSpotPosition, spot_position_dict)
 
 
-def update_fields(instance: Any, field_name: str, field_new_value: Any):
+def update_fields(instance, field_name: str, field_new_value):
     if hasattr(instance, field_name):
         setattr(instance, field_name, field_new_value)
     else:
@@ -44,8 +44,8 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def filter_fields_for_pydantic_model(
-    data: List[Dict[str, Any]], target_class: Type[T]
-) -> List[T]:
+    data: list[dict[str,]], target_class: Type[T]
+) -> list[T]:
     try:
         if not issubclass(target_class, BaseModel):
             raise ValueError(f"{target_class} is not a subclass of pydantic.BaseModel")
