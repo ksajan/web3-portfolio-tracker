@@ -10,6 +10,12 @@ from zetamarkets_py.types import Asset
 from zetamarkets_py.zeta_client.accounts.cross_margin_account import CrossMarginAccount
 from zetamarkets_py.zeta_client.accounts.pricing import Pricing
 
+from app.constants.common import Chain, Platform
+from app.constants.zeta_constants import (
+    ZetaUserPortfolioCategory,
+    ZetaUserPositionCommment,
+    ZetaUserPositionType,
+)
 from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
@@ -147,11 +153,11 @@ class ZetaUserPortfolio:
                         liquidation_price=self.liquidation_price[
                             asset.to_index()
                         ].liquidation_price,
-                        type="perp",
-                        chain="Solana",
-                        platform="Zeta",
-                        comment="Zeta perp position",
-                        category="exposure",
+                        type=ZetaUserPositionType.PERP_TYPE.value,
+                        chain=Chain.SOLANA.value,
+                        platform=Platform.ZETA.value,
+                        comment=ZetaUserPositionCommment.PERP_COMMENT.value,
+                        category=ZetaUserPortfolioCategory.EXPOSURE_CATEGORY.value,
                     )
                 )
             return response
@@ -168,10 +174,10 @@ class ZetaUserPortfolio:
                 pnl=self.account_risk_summary.unrealized_pnl,
                 symbol="USDC",
                 market_index=0,
-                chain="Solana",
-                platform="Zeta",
-                comment="Zeta unrealized pnl position",
-                category="both",
+                chain=Chain.SOLANA.value,
+                platform=Platform.ZETA.value,
+                comment=ZetaUserPositionCommment.UNREALIZED_PNL_COMMENT.value,
+                category=ZetaUserPortfolioCategory.BOTH_CATEGORY.value,
             )
         ]
 

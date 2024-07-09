@@ -4,7 +4,12 @@ from driftpy.drift_user import BASE_PRECISION, QUOTE_PRECISION, DriftUser
 from driftpy.drift_user_stats import DriftUserStats
 from driftpy.types import PerpPosition, SpotPosition
 
-from app.constants.common import DriftUserPortfolioConstants, Symbols
+from app.constants.common import Symbols
+from app.constants.drift_constants import (
+    DriftPositionComment,
+    DriftPositionType,
+    DriftUserPortfolioCategory,
+)
 from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
@@ -202,6 +207,8 @@ class DriftUserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "PERP"
                                 ),
+                                "category": DriftUserPortfolioCategory.EXPOSURE_CATEGORY.value,
+                                "comment": DriftPositionComment.PERP.value,
                             }
                             self.transform_perp_position_values(perp_position)
                             perp_position_transformed = (
@@ -215,6 +222,8 @@ class DriftUserPortfolio:
                 filtered_data = filter_fields_for_pydantic_model(
                     response, CustomPerpPosition
                 )
+                if filtered_data is None:
+                    raise Exception("Error in filtering fields for dataclass")
                 return filtered_data
 
         except Exception as e:
@@ -272,7 +281,8 @@ class DriftUserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "SPOT"
                                 ),
-                                "category": "exposure",
+                                "category": DriftUserPortfolioCategory.EXPOSURE_CATEGORY.value,
+                                "comment": DriftPositionComment.SPOT.value,
                             }
                             self.transform_spot_position_values(spot_position)
                             spot_position = (
@@ -323,8 +333,9 @@ class DriftUserPortfolio:
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
                                 symbol=Symbols.UDSC.value,
+                                type=DriftPositionType.SPOT_TYPE.value,  ## All unrealized pnl is spot type
                                 market_index=marketIndex,
-                                category=DriftUserPortfolioConstants.both_category.value,
+                                category=DriftUserPortfolioCategory.BOTH_CATEGORY.value,
                                 comment=f"Drift UPnL on {self.current_market_data.get('perp').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)
@@ -339,9 +350,9 @@ class DriftUserPortfolio:
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
                                 symbol=Symbols.UDSC.value,
-                                type=DriftUserPortfolioConstants.spot_type.value,
+                                type=DriftPositionType.SPOT_TYPE.value,
                                 market_index=marketIndex,
-                                category=DriftUserPortfolioConstants.both_category.value,
+                                category=DriftUserPortfolioCategory.BOTH_CATEGORY.value,
                                 comment=f"Drift UPnL on {self.current_market_data.get('spot').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)

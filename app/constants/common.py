@@ -8,11 +8,31 @@ class Symbols(Enum):
     UDSC = "UDSC"
 
 
-class DriftUserPortfolioConstants(Enum):
-    spot_category = "spot"
-    exposure_category = "exposure"
-    both_category = "both"
-    borrow_balance = "borrow"
-    deposit_balance = "deposit"
-    spot_type = "spot"
-    perp_type = "perp"
+class Category(Enum):
+    BALANCE = "balance"
+    EXPOSURE = "exposure"
+    BOTH = "both"
+
+
+class BalanceType(Enum):
+    BORROW = "borrow"
+    DEPOSIT = "deposit"
+
+
+class PositionSide(Enum):
+    SHORT = "short"
+    LONG = "long"
+
+
+class PositionType(Enum):
+    PERP = "perp"
+    SPOT = "spot"
+
+
+class Platform(Enum):
+    DRIFT = "Drift"
+    ZETA = "Zeta"
+
+
+class Chain(Enum):
+    SOLANA = "Solana"

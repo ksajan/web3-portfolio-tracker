@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 
 from fastapi import HTTPException
 
@@ -13,6 +12,7 @@ from app.models.client_response_types import (
 from app.models.clients import ProtocolClients
 from app.models.response_positions import (
     ResponsePerpPosition,
+    ResponsePositionBase,
     ResponseSpotPosition,
     ResponseUnrealizedPnLPosition,
 )
@@ -229,8 +229,11 @@ class Positions:
             ]
 
     def filter_small_positions(
-        self, positions: list[dict[str, any]]
-    ) -> list[dict[str, any]]:
+        self,
+        positions: list[ResponsePositionBase],
+    ) -> list[
+        set[ResponsePerpPosition, ResponseSpotPosition, ResponseUnrealizedPnLPosition]
+    ]:
         try:
             for position in positions:
                 if position.notional_usd < 1 and position.margin_usd < 1:
@@ -278,7 +281,7 @@ class Positions:
     #         }
     async def get_all_positions(
         self,
-    ) -> dict[str, list[dict[str, any]]]:
+    ) -> dict[str, list[ResponsePositionBase]]:
         try:
             await self.initialize_user_portfolio()
             perp_positions, perp_errors = await self.get_all_perp_positions()
