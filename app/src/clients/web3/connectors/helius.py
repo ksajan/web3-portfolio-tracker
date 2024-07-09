@@ -1,4 +1,9 @@
 from app.src.clients.web3.base import BaseHTTPConnector
+from app.src.clients.web3.connectors.types.types import (
+    AssetList,
+    GetAssetsByOwner,
+    SearchAssets,
+)
 
 
 class BalanceAPI(BaseHTTPConnector):
@@ -11,20 +16,14 @@ class BalanceAPI(BaseHTTPConnector):
 
 
 class TokenBalanceAPI(BaseHTTPConnector):
-    def get_asset_by_owner(self) -> dict:
+    def get_asset_by_owner(self, payload: GetAssetsByOwner) -> AssetList:
         url = self.get_endpoints()
         if url is None:
             raise ValueError(f"Invalid chain type: {self.chain_type}")
-        # payload = json.dumps(
-        #     {
-        #         "jsonrpc": "2.0",
-        #         "id": "my-id",
-        #         "method": "searchAssets",
-        #         "params": {
-        #             "ownerAddress": "BvDMnDXHxw8dLTyfMJWwsZVWsAGzYfJrUak1W3uJ76R4",
-        #             "tokenType": "fungible",
-        #             "displayOptions": {"showNativeBalance": True},
-        #         },
-        #     }
-        # )
-        payload = 
+        return self._make_post_request(url=url, payload=payload)
+
+    def search_assets(self, payload: SearchAssets) -> AssetList:
+        url = self.get_endpoints()
+        if url is None:
+            raise ValueError(f"Invalid chain type: {self.chain_type}")
+        return self._make_post_request(url=url, payload=payload)
