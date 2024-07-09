@@ -215,6 +215,8 @@ class DriftUserPortfolio:
                 filtered_data = filter_fields_for_pydantic_model(
                     response, CustomPerpPosition
                 )
+                if filtered_data is None:
+                    raise Exception("Error in filtering fields for dataclass")
                 return filtered_data
 
         except Exception as e:
