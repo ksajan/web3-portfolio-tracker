@@ -9,17 +9,23 @@ category = Literal["balance", "exposure", "both"]
 
 
 class ZetaUserPortfolioCategory(Enum):
-    spot_category = Category.balance.value
-    exposure_category = Category.exposure.value
-    both_category = Category.both.value
-    balance_category = Category.balance.value
+    SPOT_CATEGORY = Category.BALANCE.value
+    EXPOSURE_CATEGORY = Category.EXPOSURE.value
+    BOTH_CATEGORY = Category.BOTH.value
+    BALANCE_CATEGORY = Category.BALANCE.value
 
 
 class ZetaUserPortfolioBalanceType(Enum):
-    borrow_balance = BalanceType.borrow.value
-    deposit_balance = BalanceType.deposit.value
+    BORROW_BALANCE = BalanceType.BORROW.value
+    DEPOSIT_BALANCE = BalanceType.DEPOSIT.value
 
 
-class ZetaPositionType(Enum):
-    spot_type = PositionType.spot.value
-    perp_type = PositionType.perp.value
+class ZetaUserPositionType(Enum):
+    SPOT_TYPE = PositionType.SPOT.value
+    PERP_TYPE = PositionType.PERP.value
+
+
+class ZetaUserPositionCommment(Enum):
+    SPOT_COMMENT = "Zeta spot position"
+    PERP_COMMENT = "Zeta perp position"
+    UNREALIZED_PNL_COMMENT = "Zeta unrealized pnl position"

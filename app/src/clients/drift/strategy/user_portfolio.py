@@ -8,7 +8,6 @@ from app.constants.common import Symbols
 from app.constants.drift_constants import (
     DriftPositionComment,
     DriftPositionType,
-    DriftUserPortfolioBalanceType,
     DriftUserPortfolioCategory,
 )
 from app.models.client_response_types import (
@@ -208,8 +207,8 @@ class DriftUserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "PERP"
                                 ),
-                                "category": DriftUserPortfolioCategory.exposure_category.value,
-                                "comment": DriftPositionComment.perp.value,
+                                "category": DriftUserPortfolioCategory.EXPOSURE_CATEGORY.value,
+                                "comment": DriftPositionComment.PERP.value,
                             }
                             self.transform_perp_position_values(perp_position)
                             perp_position_transformed = (
@@ -282,8 +281,8 @@ class DriftUserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "SPOT"
                                 ),
-                                "category": DriftUserPortfolioCategory.exposure_category.value,
-                                "comment": DriftPositionComment.spot.value,
+                                "category": DriftUserPortfolioCategory.EXPOSURE_CATEGORY.value,
+                                "comment": DriftPositionComment.SPOT.value,
                             }
                             self.transform_spot_position_values(spot_position)
                             spot_position = (
@@ -334,8 +333,9 @@ class DriftUserPortfolio:
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
                                 symbol=Symbols.UDSC.value,
+                                type=DriftPositionType.SPOT_TYPE.value,  ## All unrealized pnl is spot type
                                 market_index=marketIndex,
-                                category=DriftUserPortfolioCategory.both_category.value,
+                                category=DriftUserPortfolioCategory.BOTH_CATEGORY.value,
                                 comment=f"Drift UPnL on {self.current_market_data.get('perp').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)
@@ -350,9 +350,9 @@ class DriftUserPortfolio:
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
                                 symbol=Symbols.UDSC.value,
-                                type=DriftPositionType.spot_type.value,
+                                type=DriftPositionType.SPOT_TYPE.value,
                                 market_index=marketIndex,
-                                category=DriftUserPortfolioCategory.both_category.value,
+                                category=DriftUserPortfolioCategory.BOTH_CATEGORY.value,
                                 comment=f"Drift UPnL on {self.current_market_data.get('spot').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)

@@ -9,23 +9,23 @@ category = Literal["balance", "exposure", "both"]
 
 
 class DriftUserPortfolioCategory(Enum):
-    spot_category = Category.balance.value
-    exposure_category = Category.exposure.value
-    both_category = Category.both.value
-    balance_category = Category.balance.value
+    SPOT_CATEGORY = Category.BALANCE.value
+    EXPOSURE_CATEGORY = Category.EXPOSURE.value
+    BOTH_CATEGORY = Category.BOTH.value
+    BALANCE_CATEGORY = Category.BALANCE.value
 
 
 class DriftUserPortfolioBalanceType(Enum):
-    borrow_balance = BalanceType.borrow.value
-    deposit_balance = BalanceType.deposit.value
+    BORROW_BALANCE = BalanceType.BORROW.value
+    DEPOSIT_BALANCE = BalanceType.DEPOSIT.value
 
 
 class DriftPositionType(Enum):
-    spot_type = PositionType.spot.value
-    perp_type = PositionType.perp.value
+    SPOT_TYPE = PositionType.SPOT.value
+    PERP_TYPE = PositionType.PERP.value
 
 
 class DriftPositionComment(Enum):
-    perp = "Drift perp position"
-    spot = "Drift collateral"
-    unrealized = "Drift UPnL"
+    PERP = "Drift perp position"
+    SPOT = "Drift collateral"
+    UNREALIZED = "Drift UPnL"

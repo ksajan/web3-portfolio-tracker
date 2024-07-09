@@ -9,26 +9,30 @@ class Symbols(Enum):
 
 
 class Category(Enum):
-    balance = "balance"
-    exposure = "exposure"
-    both = "both"
+    BALANCE = "balance"
+    EXPOSURE = "exposure"
+    BOTH = "both"
 
 
 class BalanceType(Enum):
-    borrow = "borrow"
-    deposit = "deposit"
+    BORROW = "borrow"
+    DEPOSIT = "deposit"
 
 
 class PositionSide(Enum):
-    short = "short"
-    long = "long"
+    SHORT = "short"
+    LONG = "long"
 
 
 class PositionType(Enum):
-    perp = "perp"
-    spot = "spot"
+    PERP = "perp"
+    SPOT = "spot"
 
 
 class Platform(Enum):
-    drift = "Drift"
-    zeta = "Zeta"
+    DRIFT = "Drift"
+    ZETA = "Zeta"
+
+
+class Chain(Enum):
+    SOLANA = "Solana"

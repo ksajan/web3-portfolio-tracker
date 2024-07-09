@@ -94,7 +94,6 @@ class Positions:
             drift_response, zeta_response = await asyncio.gather(
                 drift_future, zeta_future
             )
-            print(f"zetareponse: {zeta_response}")
             return (
                 drift_response[0] + zeta_response[0],
                 drift_response[1] + zeta_response[1],
