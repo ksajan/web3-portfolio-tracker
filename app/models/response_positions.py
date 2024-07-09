@@ -19,13 +19,13 @@ class ResponsePositionBase(BaseModel):
     comment: str
 
 
-class ResponsePerpPosition(PositionBase):
+class ResponsePerpPosition(ResponsePositionBase):
     pass
 
 
-class ResponseSpotPosition(PositionBase):
+class ResponseSpotPosition(ResponsePositionBase):
     pass
 
 
-class ResponseUnrealizedPnLPosition(PositionBase):
+class ResponseUnrealizedPnLPosition(ResponsePositionBase):
     pass

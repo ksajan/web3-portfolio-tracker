@@ -8,24 +8,18 @@ spot_balance_type = Literal["borrow", "deposit"]
 category = Literal["balance", "exposure", "both"]
 
 
-class DriftUserPortfolioCategory(Enum):
+class ZetaUserPortfolioCategory(Enum):
     spot_category = Category.balance.value
     exposure_category = Category.exposure.value
     both_category = Category.both.value
     balance_category = Category.balance.value
 
 
-class DriftUserPortfolioBalanceType(Enum):
+class ZetaUserPortfolioBalanceType(Enum):
     borrow_balance = BalanceType.borrow.value
     deposit_balance = BalanceType.deposit.value
 
 
-class DriftPositionType(Enum):
+class ZetaPositionType(Enum):
     spot_type = PositionType.spot.value
     perp_type = PositionType.perp.value
-
-
-class DriftPositionComment(Enum):
-    perp = "Drift perp position"
-    spot = "Drift collateral"
-    unrealized = "Drift UPnL"
