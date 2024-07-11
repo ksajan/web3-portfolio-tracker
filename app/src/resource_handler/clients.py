@@ -3,8 +3,11 @@ from app.src.clients.zeta.clients.zeta_client import ZetaClientManager
 from app.src.loader.constants import async_clients
 from app.src.logger.logger import logger
 
+print("Subscribing to all clients")
+
 
 async def subscribe_all_clients():
+    print("Inside Subscribing to all clients")
     try:
         for client_type in async_clients.keys():
             for network_type in async_clients[client_type].keys():
@@ -40,18 +43,18 @@ async def subscribe_all_clients():
                             async_clients[client_type][network_type] = zeta_client
                             logger.info(f"Subscribed to {client_type} {network_type}")
                             del zetaClientManger
-                        case "helius":
-                            helius_web3_connector_object = client()
-                            print(
-                                f"helius_web3_connector_object: {helius_web3_connector_object}"
-                            )
-                            if helius_web3_connector_object is not None:
-                                async_clients[client_type][
-                                    network_type
-                                ] = helius_web3_connector_object
-                                logger.info(
-                                    f"Subscribed to {client_type} {network_type}"
-                                )
+                        # case "helius":
+                        #     helius_web3_connector_object = client()
+                        #     print(
+                        #         f"helius_web3_connector_object: {helius_web3_connector_object}"
+                        #     )
+                        #     if helius_web3_connector_object is not None:
+                        #         async_clients[client_type][
+                        #             network_type
+                        #         ] = helius_web3_connector_object
+                        #         logger.info(
+                        #             f"Subscribed to {client_type} {network_type}"
+                        #         )
 
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")

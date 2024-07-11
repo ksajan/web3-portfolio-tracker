@@ -24,7 +24,7 @@ T = TypeVar("T")
 
 class RpcRequest(BaseModel, Generic[T]):
     jsonrpc: str = "2.0"
-    id: str = Field(default_factory=generate_random_id())
+    id: str = Field(default_factory=generate_random_id)
     method: str
     parameters: T = Field(..., alias="params")
 
@@ -170,7 +170,7 @@ class Links(BaseModel):
 
 
 class Content(BaseModel):
-    schema: str = Field(..., alias="schema", default="")
+    schema: str = Field(..., alias="schema")
     json_uri: str
     files: Optional[list[File]] = None
     metadata: Metadata

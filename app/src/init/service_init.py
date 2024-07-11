@@ -4,7 +4,8 @@ from zetamarkets_py.client import Client
 # import app.src.loader.env_vars
 from app.constants.networks import Networks
 from app.src.clients.drift.clients.drift_client import DriftClientManager
-from app.src.clients.web3.factory import Web3ClientFactory
+
+# from app.src.clients.web3.factory import Web3ClientFactory
 from app.src.clients.zeta.clients.zeta_client import ZetaClientManager
 from app.src.loader.constants import async_clients
 from app.src.logger.logger import logger
@@ -71,13 +72,13 @@ def set_zeta_devnet_client() -> Client | None:
         return None
 
 
-@register_async_clients(client_type="helius", network_type="mainnet")
-def set_web3_mainnet_client() -> Web3ClientFactory | None:
-    try:
-        mainnet_web3_client = Web3ClientFactory(
-            client_type="helius", chain_type="mainnet"
-        )
-        return mainnet_web3_client
-    except Exception as e:
-        logger.error(f"Error in setting web3 client: {e}", exc_info=True)
-        return None
+# @register_async_clients(client_type="helius", network_type="mainnet")
+# def set_web3_mainnet_client() -> Web3ClientFactory | None:
+#     try:
+#         mainnet_web3_client = Web3ClientFactory(
+#             client_type="helius", chain_type="mainnet"
+#         )
+#         return mainnet_web3_client
+#     except Exception as e:
+#         logger.error(f"Error in setting web3 client: {e}", exc_info=True)
+#         return None

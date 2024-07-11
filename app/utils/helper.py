@@ -2,8 +2,8 @@ import uuid
 
 import app.src.loader.env_vars as _env_vars
 
-SOLANA_MAINNET_RPC = _env_vars.SOLANA_MAINNET_RPC
-SOLANA_DEVNET_RPC = _env_vars.SOLANA_DEVNET_RPC
+SOLANA_MAINNET_RPC = _env_vars.SOLANA_MAINNET_RPC_URL
+SOLANA_DEVNET_RPC = _env_vars.SOLANA_DEVNET_RPC_URL
 
 
 def generate_uuid(**kwargs) -> str:
