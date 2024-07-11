@@ -1,6 +1,7 @@
 from driftpy.drift_client import DriftClient
 from zetamarkets_py.client import Client
 
+# import app.src.loader.env_vars
 from app.constants.networks import Networks
 from app.src.clients.drift.clients.drift_client import DriftClientManager
 from app.src.clients.web3.factory import Web3ClientFactory

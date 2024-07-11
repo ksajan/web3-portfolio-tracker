@@ -1,17 +1,14 @@
-from typing import Optional, Union
-
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from requests import JSONDecodeError, Session
 
 import app.src.loader as _config
 
-
-class _config:
-    HTTP_SESSION = _config.HTTP_SESSION
+print(_config.HTTP_SESSION)
 
 
 class BaseConnector(BaseModel):
     session: Session = _config.HTTP_SESSION
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class BaseHTTPConnector(BaseConnector):

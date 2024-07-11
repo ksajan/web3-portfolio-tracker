@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.constants.enums.web3_enums import DAS_API_Method
+from app.constants.web3_enums import DAS_API_Method
 from app.src.clients.web3.base import BaseHTTPConnector
 from app.src.clients.web3.connectors.helius import TokenBalanceAPI
 from app.utils.helper import get_endpoints

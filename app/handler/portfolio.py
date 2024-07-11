@@ -28,6 +28,7 @@ class Positions:
         self.wallet_address = wallet_address
         self.drift_client = clients.drift_client
         self.zeta_client = clients.zeta_client
+        self.helius_client = clients.helius_client
 
     async def initialize_user_portfolio(self):
         if self.drift_client is None:
@@ -43,9 +44,6 @@ class Positions:
             )
         self.zeta_user_portfolio: ZetaUserPortfolio = ZetaUserPortfolio.create(
             self.wallet_address, self.zeta_client
-        )
-        self.on_chain_portfolio = Web3Client.create(
-            self.wallet_address,
         )
 
     def get_perp_markets(self):

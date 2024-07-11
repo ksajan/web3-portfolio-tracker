@@ -1,4 +1,4 @@
-from .clients import HeliusClient
+from .clients import HeliusClient, Web3Client
 
 
 class Web3ClientFactory:
@@ -6,7 +6,7 @@ class Web3ClientFactory:
         self.client_type = client_type
         self.chain_type = chain_type
 
-    def get_web3_client_connector(self, wallet: str):
+    def get_web3_client_connector(self, wallet: str) -> Web3Client:
         match self.client_type:
             case "helius":
                 return HeliusClient.create(wallet=wallet, chain_type=self.chain_type)

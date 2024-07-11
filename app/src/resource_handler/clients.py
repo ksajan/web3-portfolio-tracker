@@ -46,16 +46,12 @@ async def subscribe_all_clients():
                                 f"helius_web3_connector_object: {helius_web3_connector_object}"
                             )
                             if helius_web3_connector_object is not None:
-                                helius_web3_connector = (
-                                    helius_web3_connector_object.get_web3_client_connector()
+                                async_clients[client_type][
+                                    network_type
+                                ] = helius_web3_connector_object
+                                logger.info(
+                                    f"Subscribed to {client_type} {network_type}"
                                 )
-                                if helius_web3_connector is not None:
-                                    async_clients[client_type][
-                                        network_type
-                                    ] = helius_web3_connector
-                                    logger.info(
-                                        f"Subscribed to {client_type} {network_type}"
-                                    )
 
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
