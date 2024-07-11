@@ -28,6 +28,10 @@ class RpcRequest(BaseModel, Generic[T]):
     method: str
     parameters: T = Field(..., alias="params")
 
+    @classmethod
+    def new(cls, method: str, parameters: T) -> "RpcRequest[T]":
+        return cls(method=method, parameters=parameters)
+
     class Config:
         allow_population_by_field_name = True
 
@@ -99,6 +103,12 @@ class SearchAssets(BaseModel):
 
 
 ## This is for return of helius response types
+class RpcResponse(BaseModel, Generic[T]):
+    jsonrpc: str
+    id: str
+    result: T
+
+
 class PriceInfo(BaseModel):
     price_per_token: float
     currency: str

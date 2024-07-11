@@ -40,6 +40,23 @@ async def subscribe_all_clients():
                             async_clients[client_type][network_type] = zeta_client
                             logger.info(f"Subscribed to {client_type} {network_type}")
                             del zetaClientManger
+                        case "helius":
+                            helius_web3_connector_object = client()
+                            print(
+                                f"helius_web3_connector_object: {helius_web3_connector_object}"
+                            )
+                            if helius_web3_connector_object is not None:
+                                helius_web3_connector = (
+                                    helius_web3_connector_object.get_web3_client_connector()
+                                )
+                                if helius_web3_connector is not None:
+                                    async_clients[client_type][
+                                        network_type
+                                    ] = helius_web3_connector
+                                    logger.info(
+                                        f"Subscribed to {client_type} {network_type}"
+                                    )
+
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
     except Exception as e:

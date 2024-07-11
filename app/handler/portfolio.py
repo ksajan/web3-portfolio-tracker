@@ -17,6 +17,7 @@ from app.models.response_positions import (
     ResponseUnrealizedPnLPosition,
 )
 from app.src.clients.drift.strategy.user_portfolio import DriftUserPortfolio
+from app.src.clients.web3.clients import Web3Client
 from app.src.clients.zeta.strategy.user_portfolio import ZetaUserPortfolio
 from app.src.logger.logger import logger
 
@@ -42,6 +43,9 @@ class Positions:
             )
         self.zeta_user_portfolio: ZetaUserPortfolio = ZetaUserPortfolio.create(
             self.wallet_address, self.zeta_client
+        )
+        self.on_chain_portfolio = Web3Client.create(
+            self.wallet_address,
         )
 
     def get_perp_markets(self):
