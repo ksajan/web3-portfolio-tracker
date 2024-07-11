@@ -71,19 +71,19 @@ class Positions:
 
     async def get_perp_positions(
         self, client, error_enum
-    ) -> list[tuple[list[ResponsePerpPosition], list[str]]]:
+    ) -> tuple[list[ResponsePerpPosition], list[str]]:
         try:
             perp_positions = await client.get_user_perpetual_positions()
             if perp_positions is None:
-                return [
+                return (
                     [],
-                    [(error_enum.PERP_POSITION_NOT_FOUND.value)],
-                ]
+                    [error_enum.PERP_POSITION_NOT_FOUND.value],
+                )
             response = self._populate_response_perp_positions(perp_positions)
-            return [response, []]
+            return response, []
         except Exception as e:
             logger.error(f"Error in getting perp positions: {e}", exc_info=True)
-            return [[], [(error_enum.PERP_POSITION_NOT_FOUND.value)]]
+            return [], [error_enum.PERP_POSITION_NOT_FOUND.value]
 
     async def get_all_perp_positions(
         self,
@@ -127,19 +127,19 @@ class Positions:
 
     async def get_spot_positions(
         self, client, error_enum
-    ) -> list[tuple[list[ResponseSpotPosition], list[str]]]:
+    ) -> tuple[list[ResponseSpotPosition], list[str]]:
         try:
             spot_positions = await client.get_user_spot_positions()
             if spot_positions is None:
-                return [
+                return (
                     [],
-                    [(error_enum.SPOT_POSITION_NOT_FOUND.value)],
-                ]  # [ClientPositionError(error_enum.SPOT_POSITION_NOT_FOUND)]
+                    [error_enum.SPOT_POSITION_NOT_FOUND.value],
+                )  # [ClientPositionError(error_enum.SPOT_POSITION_NOT_FOUND)]
             response = self._populate_response_spot_positions(spot_positions)
-            return [response, []]
+            return response, []
         except Exception as e:
             logger.error(f"Error in getting spot positions: {e}", exc_info=True)
-            return [[], [(error_enum.SPOT_POSITION_NOT_FOUND.value)]]
+            return [], [error_enum.SPOT_POSITION_NOT_FOUND.value]
 
     async def get_all_spot_positions(
         self,
@@ -188,24 +188,24 @@ class Positions:
 
     async def get_unrealized_pnl_positions(
         self, client, error_enum
-    ) -> list[tuple[list[ResponseUnrealizedPnLPosition], list[str]]]:
+    ) -> tuple[list[ResponseUnrealizedPnLPosition], list[str]]:
         try:
             unrealized_pnl_positions = await client.get_user_unrealized_pnl()
             if unrealized_pnl_positions is None:
-                return [
+                return (
                     [],
-                    [(error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND.value)],
-                ]
+                    [error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND.value],
+                )
             response = self._populate_unrealized_pnl_positions(unrealized_pnl_positions)
-            return [response, []]
+            return response, []
         except Exception as e:
             logger.error(
                 f"Error in getting unrealized pnl positions: {e}", exc_info=True
             )
-            return [
+            return (
                 [],
-                [(error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND.value)],
-            ]
+                [error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND.value],
+            )
 
     async def get_all_unrealized_pnl_positions(
         self,
@@ -235,9 +235,7 @@ class Positions:
     def filter_small_positions(
         self,
         positions: list[ResponsePositionBase],
-    ) -> list[
-        set[ResponsePerpPosition, ResponseSpotPosition, ResponseUnrealizedPnLPosition]
-    ]:
+    ) -> list[ResponsePositionBase]:
         try:
             for position in positions:
                 if position.notional_usd < 1 and position.margin_usd < 1:
@@ -285,7 +283,7 @@ class Positions:
     #         }
     async def get_all_positions(
         self,
-    ) -> dict[str, list[ResponsePositionBase]]:
+    ) -> dict[str, list[ResponsePositionBase] | list[str]]:
         try:
             await self.initialize_user_portfolio()
             perp_positions, perp_errors = await self.get_all_perp_positions()
