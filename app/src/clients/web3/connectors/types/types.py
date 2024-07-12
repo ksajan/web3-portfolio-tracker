@@ -115,11 +115,21 @@ class RpcResponse(BaseModel, Generic[T]):
     error: Optional[Error] = None
     result: T
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class PriceInfo(BaseModel):
     price_per_token: float
     currency: str
     total_price: Optional[float] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class TokenInfo(BaseModel):
@@ -135,6 +145,11 @@ class TokenInfo(BaseModel):
     mint_authority: Optional[str] = None
     freeze_authority: Optional[str] = None
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class Inscription(BaseModel):
     order: int
@@ -145,12 +160,18 @@ class Inscription(BaseModel):
     inscription_data_account: str
     authority: str
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class FileQuality(BaseModel):
-    schema: str = Field(..., alias="$$schema")
+    schema_: str = Field(..., alias="$$schema")
 
     model_config = ConfigDict(
         populate_by_name=True,
+        arbitrary_types_allowed=True,
     )
 
 
@@ -161,10 +182,20 @@ class File(BaseModel):
     quality: Optional[FileQuality] = None
     contexts: Optional[list[Context]] = None
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class Attribute(BaseModel):
     value: Any
     trait_type: str
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class Metadata(BaseModel):
@@ -173,11 +204,21 @@ class Metadata(BaseModel):
     name: Optional[str] = None
     symbol: Optional[str] = None
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class Links(BaseModel):
     external_url: Optional[str] = None
     image: Optional[str] = None
     animation_url: Optional[str] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class Content(BaseModel):
@@ -187,13 +228,20 @@ class Content(BaseModel):
     metadata: Metadata
     links: Optional[Links] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class Authorities(BaseModel):
     address: str
     scopes: list[Scope]
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class CollectionMetadata(BaseModel):
@@ -203,12 +251,22 @@ class CollectionMetadata(BaseModel):
     description: Optional[str] = None
     external_url: Optional[str] = None
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class Group(BaseModel):
     group_key: str
     group_value: Optional[str] = None
     verified: Optional[bool] = None
     collection_metadata: Optional[CollectionMetadata] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class Compression(BaseModel):
@@ -221,11 +279,21 @@ class Compression(BaseModel):
     seq: int
     leaf_id: int
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class Creator(BaseModel):
     address: str
     share: int
     verified: bool
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class Royalty(BaseModel):
@@ -236,6 +304,11 @@ class Royalty(BaseModel):
     primary_sale_happened: bool
     locked: bool
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class Ownership(BaseModel):
     frozen: bool
@@ -244,11 +317,21 @@ class Ownership(BaseModel):
     ownership_model: OwnershipModel
     owner: str
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class Uses(BaseModel):
     use_method: UseMethod
     remaining: int
     total: int
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class Supply(BaseModel):
@@ -258,8 +341,10 @@ class Supply(BaseModel):
     edition_number: Optional[int]
     master_edition_mint: Optional[str]
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class GroupDefinition(BaseModel):
@@ -268,11 +353,21 @@ class GroupDefinition(BaseModel):
     size: Optional[int] = None
     asset_id: list[int]
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
 
 class MplCoreInfo(BaseModel):
     num_minted: Optional[int] = None
     current_size: Optional[int] = None
     plugins_json_version: Optional[int] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class Asset(BaseModel):
@@ -296,13 +391,20 @@ class Asset(BaseModel):
     unknown_plugins: Optional[Any] = None
     mpl_core_info: Optional[MplCoreInfo] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class AssetError(BaseModel):
     id: str
     error: str
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class AssetList(BaseModel):
@@ -316,5 +418,7 @@ class AssetList(BaseModel):
     items: list[Asset]
     errors: Optional[list[AssetError]] = None
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
