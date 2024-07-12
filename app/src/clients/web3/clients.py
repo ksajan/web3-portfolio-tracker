@@ -46,6 +46,22 @@ class HeliusClient(Web3Client):
             if response_data.error:
                 raise ValueError(response_data.error.message)
             onchain_positions = []
+            if response_data.result.nativeBalance is not None:
+                onchain_position = CustomOnChainPosition(
+                    symbol="SOL",
+                    amount=response_data.result.nativeBalance.lamports
+                    * 10**9,  # converting lamports to SOL (1 SOL = 1 billion lamports)
+                    current_price=response_data.result.nativeBalance.price_per_sol,
+                    total_price=response_data.result.nativeBalance.total_price,
+                    chain="Solana",
+                    platform="Solana",
+                    type="spot",
+                    category="both",
+                    comment="Solana on-chain position",
+                    side="long",
+                    liquidation_price=0.0,  # Constant value in case of onchain positions
+                )
+                onchain_positions.append(onchain_position)
             for asset in response_data.result.items:
                 if (
                     asset.token_info is not None
