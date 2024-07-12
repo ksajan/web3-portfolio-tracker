@@ -151,189 +151,6 @@ class TokenInfo(BaseModel):
     )
 
 
-class Inscription(BaseModel):
-    order: int
-    size: int
-    content_type: str
-    encoding: str
-    validation_hash: str
-    inscription_data_account: str
-    authority: str
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class FileQuality(BaseModel):
-    schema_: str = Field(..., alias="$$schema")
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class File(BaseModel):
-    uri: Optional[str] = None
-    mime: Optional[str] = None
-    cdn_uri: Optional[str] = None
-    quality: Optional[FileQuality] = None
-    contexts: Optional[list[Context]] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Attribute(BaseModel):
-    value: Any
-    trait_type: str
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Metadata(BaseModel):
-    attributes: Optional[list[Attribute]] = None
-    description: Optional[str] = None
-    name: Optional[str] = None
-    symbol: Optional[str] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Links(BaseModel):
-    external_url: Optional[str] = None
-    image: Optional[str] = None
-    animation_url: Optional[str] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Content(BaseModel):
-    schema_: str = Field(..., alias="$schema")
-    json_uri: str
-    files: Optional[list[File]] = None
-    metadata: Metadata
-    links: Optional[Links] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Authorities(BaseModel):
-    address: str
-    scopes: list[Scope]
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class CollectionMetadata(BaseModel):
-    name: Optional[str] = None
-    symbol: Optional[str] = None
-    image: Optional[str] = None
-    description: Optional[str] = None
-    external_url: Optional[str] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Group(BaseModel):
-    group_key: str
-    group_value: Optional[str] = None
-    verified: Optional[bool] = None
-    collection_metadata: Optional[CollectionMetadata] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Compression(BaseModel):
-    eligible: bool
-    compressed: bool
-    data_hash: str
-    creator_hash: str
-    asset_hash: str
-    tree: str
-    seq: int
-    leaf_id: int
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Creator(BaseModel):
-    address: str
-    share: int
-    verified: bool
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Royalty(BaseModel):
-    royalty_model: RoyaltyModel
-    target: Optional[str] = None
-    percent: float
-    basis_points: int
-    primary_sale_happened: bool
-    locked: bool
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Ownership(BaseModel):
-    frozen: bool
-    delegated: bool
-    delegate: Optional[str] = None
-    ownership_model: OwnershipModel
-    owner: str
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Uses(BaseModel):
-    use_method: UseMethod
-    remaining: int
-    total: int
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
 class Supply(BaseModel):
     print_max_supply: Optional[int]
     print_current_supply: Optional[int]
@@ -347,50 +164,11 @@ class Supply(BaseModel):
     )
 
 
-class GroupDefinition(BaseModel):
-    group_key: str
-    group_value: Optional[str] = None
-    size: Optional[int] = None
-    asset_id: list[int]
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class MplCoreInfo(BaseModel):
-    num_minted: Optional[int] = None
-    current_size: Optional[int] = None
-    plugins_json_version: Optional[int] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
 class Asset(BaseModel):
     interface: Interface
     id: str
-    content: Optional[Content] = None
-    authorities: Optional[list[Authorities]] = None
-    compression: Optional[Compression] = None
-    grouping: Optional[list[Group]] = None
-    royalty: Optional[Royalty] = None
-    creators: Optional[list[Creator]] = None
-    ownership: Ownership
-    uses: Optional[Uses] = None
     supply: Optional[Supply] = None
-    mutable: bool
-    burnt: bool
-    mint_extensions: Optional[Any] = None
     token_info: Optional[TokenInfo] = None
-    group_definition: Optional[GroupDefinition] = None
-    plugins: Optional[Any] = None
-    unknown_plugins: Optional[Any] = None
-    mpl_core_info: Optional[MplCoreInfo] = None
-
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -400,6 +178,17 @@ class Asset(BaseModel):
 class AssetError(BaseModel):
     id: str
     error: str
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
+
+
+class NativeBalance(BaseModel):
+    lamports: int
+    price_per_sol: float
+    total_price: float
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -417,8 +206,10 @@ class AssetList(BaseModel):
     cursor: Optional[str] = None
     items: list[Asset]
     errors: Optional[list[AssetError]] = None
+    nativeBalance: Optional[NativeBalance] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
+        extra="allow",
     )

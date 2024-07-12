@@ -77,3 +77,7 @@ class TokenType(str, Enum):
     compressed_nft = "compressedNft"
     regular_nft = "regularNft"
     all = "all"
+
+
+class SearchAssetShowNativeBalance(str, Enum):
+    native_balance = "nativeBalance"
