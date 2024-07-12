@@ -24,7 +24,12 @@ class GenralPositionError(Enum):
     UPNL_POSITION_NOT_FOUND = "Upnl position not found"
 
 
+class Web3PositionsError(Enum):
+    ONCHAIN_POSITIONS_NOT_FOUND = "Onchain positions not found"
+
+
 class ClientPositionError(Enum):
     DRIFT_POSITION_ERROR = DriftPositionError
     ZETA_POSITION_ERROR = ZetaPositionError
     GENERAL_POSITION_ERROR = GenralPositionError
+    ONCHAIN_POSITIONS_ERROR = Web3PositionsError

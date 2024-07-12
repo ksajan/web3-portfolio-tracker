@@ -1,6 +1,7 @@
 import uuid
 
 import app.src.loader.env_vars as _env_vars
+from app.src.logger.logger import logger
 
 SOLANA_MAINNET_RPC = _env_vars.SOLANA_MAINNET_RPC_URL
 SOLANA_DEVNET_RPC = _env_vars.SOLANA_DEVNET_RPC_URL
@@ -18,9 +19,10 @@ def generate_random_id() -> str:
 
 def get_endpoints(chain_type: str) -> str | None:
     match chain_type:
-        case "solana":
+        case "mainnet":
             return SOLANA_MAINNET_RPC
-        case "solana_dev":
+        case "devnet":
             return SOLANA_DEVNET_RPC
         case _:
+            logger.error(f"Chain type: {chain_type} not supported")
             return None

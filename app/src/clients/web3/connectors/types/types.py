@@ -1,6 +1,7 @@
 from typing import Any, Generic, Optional, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic.alias_generators import to_camel
 
 from app.utils.helper import generate_random_id
 
@@ -33,7 +34,8 @@ class RpcRequest(BaseModel, Generic[T]):
         return cls(method=method, parameters=parameters)
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
+        by_alias = True
 
 
 class AssetSorting(BaseModel):
@@ -53,7 +55,7 @@ class GetAssetsByOwner(BaseModel):
     cursor: Optional[str] = None
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class NotFilter(BaseModel):
@@ -90,7 +92,7 @@ class SearchAssets(BaseModel):
     after: Optional[str] = None
     json_uri: Optional[str] = None
     not_: Optional[NotFilter] = Field(None, alias="not")
-    options: Optional[SearchAssetsOptions] = Field(None, alias="displayOptions")
+    displayOptions: Optional[SearchAssetsOptions] = Field(None, alias="displayOptions")
     cursor: Optional[str] = None
     name: Optional[str] = None
     collections: Optional[list[str]] = None
@@ -98,21 +100,26 @@ class SearchAssets(BaseModel):
     tree: Optional[str] = None
     collection_nft: Optional[bool] = None
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+
+class Error(BaseModel):
+    code: int
+    message: str
 
 
 ## This is for return of helius response types
 class RpcResponse(BaseModel, Generic[T]):
     jsonrpc: str
     id: str
+    error: Optional[Error] = None
     result: T
 
 
 class PriceInfo(BaseModel):
     price_per_token: float
     currency: str
-    total_price: Optional[float]
+    total_price: Optional[float] = None
 
 
 class TokenInfo(BaseModel):
@@ -124,9 +131,9 @@ class TokenInfo(BaseModel):
     associated_token_address: Optional[str] = Field(
         None, alias="associatedTokenAddress"
     )
-    price_info: Optional[PriceInfo]
-    mint_authority: Optional[str]
-    freeze_authority: Optional[str]
+    price_info: Optional[PriceInfo] = None
+    mint_authority: Optional[str] = None
+    freeze_authority: Optional[str] = None
 
 
 class Inscription(BaseModel):
@@ -141,6 +148,10 @@ class Inscription(BaseModel):
 
 class FileQuality(BaseModel):
     schema: str = Field(..., alias="$$schema")
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
 
 
 class File(BaseModel):
@@ -170,14 +181,14 @@ class Links(BaseModel):
 
 
 class Content(BaseModel):
-    schema: str = Field(..., alias="schema")
+    schema_: str = Field(..., alias="$schema")
     json_uri: str
     files: Optional[list[File]] = None
     metadata: Metadata
     links: Optional[Links] = None
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class Authorities(BaseModel):
@@ -248,7 +259,7 @@ class Supply(BaseModel):
     master_edition_mint: Optional[str]
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class GroupDefinition(BaseModel):
@@ -279,14 +290,14 @@ class Asset(BaseModel):
     mutable: bool
     burnt: bool
     mint_extensions: Optional[Any] = None
-    token_info: Optional[TokenInfo]
+    token_info: Optional[TokenInfo] = None
     group_definition: Optional[GroupDefinition] = None
     plugins: Optional[Any] = None
     unknown_plugins: Optional[Any] = None
     mpl_core_info: Optional[MplCoreInfo] = None
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class AssetError(BaseModel):
@@ -295,7 +306,7 @@ class AssetError(BaseModel):
 
 
 class AssetList(BaseModel):
-    grand_total: Optional[int]
+    grand_total: Optional[int] = None
     total: int
     limit: int
     page: Optional[int] = None
@@ -306,4 +317,4 @@ class AssetList(BaseModel):
     errors: Optional[list[AssetError]] = None
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True

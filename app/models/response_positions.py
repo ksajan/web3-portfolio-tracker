@@ -29,3 +29,7 @@ class ResponseSpotPosition(ResponsePositionBase):
 
 class ResponseUnrealizedPnLPosition(ResponsePositionBase):
     pass
+
+
+class ResponseOnChainPosition(ResponsePositionBase):
+    pass

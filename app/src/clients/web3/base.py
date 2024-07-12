@@ -1,9 +1,8 @@
+import requests
 from pydantic import BaseModel, ConfigDict, Field
 from requests import JSONDecodeError, Session
 
 import app.src.loader as _config
-
-print(_config.HTTP_SESSION)
 
 
 class BaseConnector(BaseModel):
@@ -25,11 +24,17 @@ class BaseHTTPConnector(BaseConnector):
     def _make_post_request(
         self, url: str, payload: dict, headers=None
     ) -> dict | Exception:
-        response = self.session.post(url, json=payload)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise ValueError(f"Error: {response.status_code}: {response.content}")
+        try:
+            response = self.session.post(url, json=payload)
+            response.raise_for_status()
+            if response.status_code == 200:
+                return response.json()
+        except requests.exceptions.HTTPError as e:
+            raise ValueError(
+                f"failed to make post request with status code: {response.status_code}, and content: {response.content}"
+            ) from e
+        except Exception as e:
+            raise ValueError(f"failed to make post request with error: {str(e)}") from e
 
     def _make_put_request(
         self, url: str, payload: dict, headers=None

@@ -5,19 +5,20 @@ from fastapi import HTTPException
 from app.constants.error import ClientPositionError
 from app.handler.position import PositionFactory
 from app.models.client_response_types import (
+    CustomOnChainPosition,
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
 )
 from app.models.clients import ProtocolClients
 from app.models.response_positions import (
+    ResponseOnChainPosition,
     ResponsePerpPosition,
     ResponsePositionBase,
     ResponseSpotPosition,
     ResponseUnrealizedPnLPosition,
 )
 from app.src.clients.drift.strategy.user_portfolio import DriftUserPortfolio
-from app.src.clients.web3.clients import Web3Client
 from app.src.clients.zeta.strategy.user_portfolio import ZetaUserPortfolio
 from app.src.logger.logger import logger
 
@@ -45,6 +46,11 @@ class Positions:
         self.zeta_user_portfolio: ZetaUserPortfolio = ZetaUserPortfolio.create(
             self.wallet_address, self.zeta_client
         )
+
+        if self.helius_client is None:
+            raise HTTPException(
+                status_code=500, detail="Helius client is not initialized"
+            )
 
     def get_perp_markets(self):
         perp_markets = self.user_portfolio.get_all_markets()
@@ -279,6 +285,58 @@ class Positions:
     #             "positions": [],
     #             "errors": [ClientPositionError.GENERAL_POSITION_ERROR],
     #         }
+    def _populate_response_onchain_positions(
+        self, onchain_positions: list[CustomOnChainPosition]
+    ) -> list[ResponseOnChainPosition]:
+        try:
+            response_onchain_positions = []
+            for onchain_position in onchain_positions:
+                response_onchain_position = (
+                    PositionFactory.create_response_onchain_position(
+                        onchain_position, self.wallet_address
+                    )
+                )
+                response_onchain_positions.append(response_onchain_position)
+            return response_onchain_positions
+        except Exception as e:
+            logger.error(
+                f"Error in populating response onchain positions: {e}", exc_info=True
+            )
+            return []
+
+    def get_helius_positions(
+        self, error_enum
+    ) -> tuple[list[ResponseOnChainPosition], list[str]]:
+        try:
+            onchain_positions = self.helius_client.get_onchain_positions(
+                self.wallet_address
+            )
+            if onchain_positions is None:
+                return [], [error_enum.ONCHAIN_POSITIONS_NOT_FOUND.value]
+            response = self._populate_response_onchain_positions(onchain_positions)
+            return response, []
+        except Exception as e:
+            logger.error(
+                f"Error in getting onchain positions for wallet: {self.wallet_address} with error: {e}",
+                exc_info=True,
+            )
+            return [], [error_enum.ONCHAIN_POSITIONS_NOT_FOUND.value]
+
+    def get_all_onchain_positions(
+        self,
+    ) -> tuple[list[ResponseOnChainPosition], list[str]]:
+        try:
+            onchain_positions, onchain_positions_errors = self.get_helius_positions(
+                ClientPositionError.ONCHAIN_POSITIONS_ERROR.value
+            )
+            return onchain_positions, onchain_positions_errors
+        except Exception as e:
+            logger.error(
+                f"Error in getting onchain positions for wallet: {self.wallet_address} with error: {e}",
+                exc_info=True,
+            )
+            return [], [ClientPositionError.ONCHAIN_POSITIONS_ERROR.value]
+
     async def get_all_positions(
         self,
     ) -> dict[str, list[ResponsePositionBase] | list[str]]:
@@ -289,12 +347,21 @@ class Positions:
             unrealized_pnl_positions, upnl_errors = (
                 await self.get_all_unrealized_pnl_positions()
             )
+            onchain_positions, onchain_positions_errors = (
+                self.get_all_onchain_positions()
+            )
             filtered_all_positions = self.filter_small_positions(
-                positions=perp_positions + spot_positions + unrealized_pnl_positions
+                positions=perp_positions
+                + spot_positions
+                + unrealized_pnl_positions
+                + onchain_positions
             )
             return {
                 "positions": filtered_all_positions,
-                "errors": perp_errors + spot_error + upnl_errors,
+                "errors": perp_errors
+                + spot_error
+                + upnl_errors
+                + onchain_positions_errors,
             }
         except Exception as e:
             logger.error(

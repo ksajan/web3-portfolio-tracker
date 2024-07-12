@@ -52,7 +52,6 @@ class DriftClientManager:
                 self.chain_type
                 == self.network_constants.networkTypes.SOLANA_DEVNET.value
             ):
-                print("Using devnet", SOLANA_DEVNET_RPC_URL)
                 return AsyncClient(endpoint=SOLANA_DEVNET_RPC_URL)
             else:
                 raise ValueError(

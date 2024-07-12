@@ -1,14 +1,16 @@
 from app.models.client_response_types import (
+    CustomOnChainPosition,
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
 )
 from app.models.response_positions import (
+    ResponseOnChainPosition,
     ResponsePerpPosition,
     ResponseSpotPosition,
     ResponseUnrealizedPnLPosition,
 )
-from app.utils.helper import generate_uuid
+from app.utils.helper import generate_random_id, generate_uuid
 
 
 class PositionFactory:
@@ -93,7 +95,33 @@ class PositionFactory:
         )
 
     @staticmethod
+    def create_response_onchain_position(
+        onchain_position: CustomOnChainPosition, wallet_address: str
+    ) -> ResponseOnChainPosition:
+        return ResponseOnChainPosition(
+            id=PositionFactory.generate_random_id(),
+            account=wallet_address,
+            price=onchain_position.current_price,
+            margin_usd=onchain_position.total_price,
+            margin_base=onchain_position.amount,
+            notional_usd=onchain_position.total_price,
+            notional_base=onchain_position.amount,
+            liquidation_price=onchain_position.liquidation_price,
+            type=onchain_position.type,
+            symbol=onchain_position.symbol,
+            side=onchain_position.side,
+            chain=onchain_position.chain,
+            platform=onchain_position.platform,
+            comment=onchain_position.comment,
+            category=onchain_position.category,
+        )
+
+    @staticmethod
     def generate_uuid(market_index: int, market_type: str, symbol: str) -> str:
         return generate_uuid(
             market_index=market_index, market_type=market_type, symbol=symbol
         )
+
+    @staticmethod
+    def generate_random_id() -> str:
+        return generate_random_id()

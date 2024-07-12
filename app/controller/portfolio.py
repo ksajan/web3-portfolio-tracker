@@ -9,7 +9,6 @@ async def get_all_positions(
 ) -> dict[str, list]:
     try:
         position_object = Positions(wallet_address=wallet_address, clients=clients)
-        await position_object.initialize_user_portfolio()
         all_positions = await position_object.get_all_positions()
         if all_positions is None:
             raise HTTPException(status_code=404, detail="No positions found")

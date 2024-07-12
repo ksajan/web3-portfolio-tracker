@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.constants.drift_constants import spot_balance_type, spot_category
+from app.constants.drift_constants import spot_category
 
 
 class CustomPerpPosition(BaseModel):
@@ -40,3 +40,17 @@ class CustomUnrealizedPnLPosition(BaseModel):
     platform: str = "Drift"
     comment: str = "Drift UPnL"
     category: str = "both"
+
+
+class CustomOnChainPosition(BaseModel):
+    amount: float
+    current_price: float
+    symbol: str
+    total_price: float
+    chain: str = "Solana"
+    platform: str = "Solana"
+    type: str = "spot"
+    category: str = "both"
+    liquidation_price: float = 0.0
+    comment: str = "Solana on-chain position"
+    side: str = "long"
