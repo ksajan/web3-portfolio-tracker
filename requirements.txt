@@ -1,5 +1,5 @@
 fastapi==0.111.0
 python-dotenv==1.0.1
-driftpy==0.7.64
+driftpy==0.7.69
 gunicorn==22.0.0
 python-json-logger==2.0.7
