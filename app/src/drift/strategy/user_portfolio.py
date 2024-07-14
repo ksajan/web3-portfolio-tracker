@@ -272,7 +272,7 @@ class UserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "SPOT"
                                 ),
-                                "category": "exposure",
+                                "category": "both",
                             }
                             self.transform_spot_position_values(spot_position)
                             spot_position = (
