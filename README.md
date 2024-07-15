@@ -60,7 +60,7 @@ docker build -f deployment/Dockerfile . -t quant-portfolio
 Run the Docker container:
 
 ```bash
-docker run -p 8002:8001 --env-file .env quant-portfolio
+docker run -p 8000:8000 --env-file .env quant-portfolio
 ```
 
 ### 3. Using Packaged Docker Image
@@ -76,7 +76,7 @@ docker pull ghcr.io/crypto_quants/portfolio_tracker:<TAG>
 Run the Docker container:
 
 ```bash
-docker run -p 8001:8001 --env-file .env ghcr.io/crypto_quants/portfolio_tracker:<TAG>
+docker run -p 8000:8000 --env-file .env ghcr.io/crypto_quants/portfolio_tracker:<TAG>
 ```
 
 ## Usage

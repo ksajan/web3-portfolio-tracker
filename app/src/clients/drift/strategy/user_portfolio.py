@@ -207,7 +207,7 @@ class DriftUserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "PERP"
                                 ),
-                                "category": DriftUserPortfolioCategory.EXPOSURE_CATEGORY.value,
+                                "category": DriftUserPortfolioCategory.BOTH_CATEGORY.value,
                                 "comment": DriftPositionComment.PERP.value,
                             }
                             self.transform_perp_position_values(perp_position)
