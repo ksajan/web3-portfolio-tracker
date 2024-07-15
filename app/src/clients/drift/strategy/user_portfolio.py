@@ -44,6 +44,7 @@ class DriftUserPortfolio:
         )
         self.drift_strategy_object = drift_strategy_object
         self.current_market_data = None
+        self.total_sub_accounts = self.get_user_total_sub_accounts()
 
     async def get_current_market_data(self):
         all_markets = await self.drift_strategy_object.get_markets()
@@ -76,9 +77,22 @@ class DriftUserPortfolio:
     def get_user_total_sub_accounts(
         self,
     ) -> int:
-        return (
-            self.drift_user_account_stats_client_manager.get_account().number_of_sub_accounts
-        )
+        try:
+            return (
+                self.drift_user_account_stats_client_manager.get_account().number_of_sub_accounts
+            )
+        except AttributeError as e:
+            logger.warning(
+                f"No sub accounts found for user: {self.user_pubkey}",
+                exc_info=True,
+                extra={"client": "Drift"},
+            )
+            return 0
+        except Exception as e:
+            logger.error(
+                f"Error in getting user total sub accounts: {e}", exc_info=True
+            )
+            return 0
 
     def get_all_markets(self) -> list:
         return self.drift_user_client_manager_object.get_user_account().perp_positions
@@ -178,9 +192,9 @@ class DriftUserPortfolio:
             if self.current_market_data is None:
                 await self.get_current_market_data()
             response = []
-            total_sub_accounts = self.get_user_total_sub_accounts()
-            if total_sub_accounts is not None and total_sub_accounts > 0:
-                for sub_account_id in range(total_sub_accounts):
+            # total_sub_accounts = self.get_user_total_sub_accounts()
+            if self.total_sub_accounts is not None and self.total_sub_accounts > 0:
+                for sub_account_id in range(self.total_sub_accounts):
                     perp_positions = []
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
@@ -253,9 +267,8 @@ class DriftUserPortfolio:
             if self.current_market_data is None:
                 await self.get_current_market_data()
             response = []
-            total_sub_accounts = self.get_user_total_sub_accounts()
-            if total_sub_accounts is not None and total_sub_accounts > 0:
-                for sub_account_id in range(total_sub_accounts):
+            if self.total_sub_accounts is not None and self.total_sub_accounts > 0:
+                for sub_account_id in range(self.total_sub_accounts):
                     spot_positions = []
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
@@ -312,9 +325,8 @@ class DriftUserPortfolio:
             if self.current_market_data is None:
                 await self.get_current_market_data()
             response = []
-            total_sub_accounts = self.get_user_total_sub_accounts()
-            if total_sub_accounts is not None and total_sub_accounts > 0:
-                for sub_account_id in range(total_sub_accounts):
+            if self.total_sub_accounts is not None and self.total_sub_accounts > 0:
+                for sub_account_id in range(self.total_sub_accounts):
                     unrealized_pnl = 0
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
