@@ -40,7 +40,7 @@ class Positions:
             raise HTTPException(
                 status_code=500, detail="Zeta client is not initialized"
             )
-        self.zeta_user_portfolio: ZetaUserPortfolio = ZetaUserPortfolio.create(
+        self.zeta_user_portfolio: ZetaUserPortfolio = await ZetaUserPortfolio.create(
             self.wallet_address, self.zeta_client
         )
 
@@ -190,7 +190,7 @@ class Positions:
             if unrealized_pnl_positions is None:
                 return (
                     [],
-                    [error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND.value],
+                    [error_enum.UPNL_POSITION_NOT_FOUND.value],
                 )
             response = self._populate_unrealized_pnl_positions(unrealized_pnl_positions)
             return response, []
@@ -200,7 +200,7 @@ class Positions:
             )
             return (
                 [],
-                [error_enum.UNREALIZED_PNL_POSITION_NOT_FOUND.value],
+                [error_enum.UPNL_POSITION_NOT_FOUND.value],
             )
 
     async def get_all_unrealized_pnl_positions(
