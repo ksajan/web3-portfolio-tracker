@@ -1,6 +1,12 @@
+import anchorpy
 from solders.pubkey import Pubkey
 from zetamarkets_py import pda
 from zetamarkets_py.client import Client
+from zetamarkets_py.risk import AccountRiskSummary
+from zetamarkets_py.zeta_client.accounts.cross_margin_account import CrossMarginAccount
+from zetamarkets_py.zeta_client.accounts.pricing import Pricing
+
+from app.src.logger.logger import logger
 
 
 class ZetaUserClientManager:
@@ -23,3 +29,29 @@ class ZetaUserClientManager:
         return pda.get_margin_account_address(
             self.zeta_client.exchange.program_id, self.user_pubkey, sub_account_id
         )
+
+    async def get_user_risk_summary(self) -> AccountRiskSummary:
+        try:
+            account_infos = await anchorpy.utils.rpc.get_multiple_accounts(
+                self.zeta_client.connection,
+                [
+                    self.get_user_margin_account_address(),
+                    self.zeta_client.exchange._pricing_address,
+                ],
+            )
+            if (
+                account_infos is None
+                or account_infos[0] is None
+                or account_infos[0].account is None
+                or len(account_infos) < 2
+            ):
+                return None
+            margin_account = CrossMarginAccount.decode(account_infos[0].account.data)
+            pricing_account = Pricing.decode(account_infos[1].account.data)
+            accountRiskSummary = AccountRiskSummary.from_margin_and_pricing_accounts(
+                margin_account, pricing_account
+            )
+            return accountRiskSummary
+        except Exception as e:
+            logger.error(f"Error getting user risk summary: {e}", exc_info=True)
+            return None
