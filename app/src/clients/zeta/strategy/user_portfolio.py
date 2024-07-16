@@ -10,7 +10,7 @@ from zetamarkets_py.types import Asset
 from zetamarkets_py.zeta_client.accounts.cross_margin_account import CrossMarginAccount
 from zetamarkets_py.zeta_client.accounts.pricing import Pricing
 
-from app.constants.common import Chain, Platform
+from app.constants.common import Chain, Platform, Symbols
 from app.constants.zeta_constants import (
     ZetaUserPortfolioCategory,
     ZetaUserPositionCommment,
@@ -32,25 +32,26 @@ SOLANA_DEVNET_RPC = env_vars.SOLANA_DEVNET_RPC_URL
 
 class ZetaUserPortfolio:
     def __init__(
-        self, user_pubkey: str, zeta_user_client_manager: ZetaUserClientManager
+        self,
+        user_pubkey: str,
+        zeta_user_client_manager: ZetaUserClientManager,
+        account_risk_summary: AccountRiskSummary = None,
     ):
-        self.liquidation_price = None
-        self.account_risk_summary = None
+        self.account_risk_summary = account_risk_summary
         self.user_pubkey = Pubkey.from_string(user_pubkey)
         self.zeta_user_client_manager = zeta_user_client_manager
 
-    async def init_zeta_resource(self):
-        self.account_risk_summary = await self.get_user_risk_summary()
-        self.liquidation_price = await self.get_risk_details()
-
     @classmethod
-    def create(cls, user_pubkey: str, zeta_client: Client):
+    async def create(cls, user_pubkey: str, zeta_client: Client):
         try:
             zeta_user_client_manager = ZetaUserClientManager(
                 user_pubkey=user_pubkey,
                 zeta_client=zeta_client,
             )
-            return cls(user_pubkey, zeta_user_client_manager)
+            account_risk_summary = (
+                await zeta_user_client_manager.get_user_risk_summary()
+            )
+            return cls(user_pubkey, zeta_user_client_manager, account_risk_summary)
         except Exception as e:
             logger.error(f"Error creating UserPortfolio: {e}", exc_info=True)
             raise e
@@ -138,8 +139,16 @@ class ZetaUserPortfolio:
         self,
     ) -> list[CustomPerpPosition] | None:
         try:
-            await self.init_zeta_resource()
             response = []
+            if self.account_risk_summary is None:
+                logger.warning(
+                    "account doesn't have any perpetual positions",
+                    exc_info=True,
+                    extra={"user_pubkey": self.user_pubkey, "client": "Zeta"},
+                )
+                return None
+            else:
+                self.liquidation_price = await self.get_risk_details()
             for asset, position in self.account_risk_summary.positions.items():
                 if position.size == 0:
                     continue
@@ -168,11 +177,18 @@ class ZetaUserPortfolio:
     async def get_user_unrealized_pnl(
         self,
     ) -> list[CustomUnrealizedPnLPosition] | None:
+        if self.account_risk_summary is None:
+            logger.warning(
+                "account doesn't have any Unrealized PnL positions",
+                exc_info=True,
+                extra={"user_pubkey": self.user_pubkey, "client": "Zeta"},
+            )
+            return None
 
         return [
             CustomUnrealizedPnLPosition(
                 pnl=self.account_risk_summary.unrealized_pnl,
-                symbol="USDC",
+                symbol=Symbols.UDSC.value,
                 market_index=0,
                 chain=Chain.SOLANA.value,
                 platform=Platform.ZETA.value,
