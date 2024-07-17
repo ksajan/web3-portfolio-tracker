@@ -1,5 +1,7 @@
-from app.src.drift.clients.drift_client import DriftClientManager
+from app.src.clients.drift.clients.drift_client import DriftClientManager
+from app.src.clients.zeta.clients.zeta_client import ZetaClientManager
 from app.src.loader.constants import async_clients
+from app.src.logger.logger import logger
 
 
 async def subscribe_all_clients():
@@ -22,12 +24,26 @@ async def subscribe_all_clients():
                                     f"subscription failed for {client_type} {network_type} with error: {e}"
                                 )
                             async_clients[client_type][network_type] = drift_client
-                            print(f"Subscribed to {client_type} {network_type}")
+                            logger.info(f"Subscribed to {client_type} {network_type}")
                             del driftClientManager
+                        case "zeta_client":
+                            zeta_client = client()
+                            zetaClientManger = ZetaClientManager(network_type)
+                            try:
+                                zeta_client = await zetaClientManger.subscribe(
+                                    zeta_client
+                                )
+                            except Exception as e:
+                                raise ValueError(
+                                    f"subscription failed for {client_type} {network_type} with error: {e}"
+                                )
+                            async_clients[client_type][network_type] = zeta_client
+                            logger.info(f"Subscribed to {client_type} {network_type}")
+                            del zetaClientManger
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
     except Exception as e:
-        print(f"Error in subscribing to client: {e}")
+        logger.error(f"Error in subscribing to client: {e}", exc_info=True)
 
 
 async def clear_internal_resources():
@@ -45,9 +61,23 @@ async def clear_internal_resources():
                                 raise ValueError(
                                     f"unsubscription failed for {client_type} {network_type} with error: {e}"
                                 )
-                            print(f"Unsubscribed from {client_type} {network_type}")
+                            logger.info(
+                                f"Unsubscribed from {client_type} {network_type}"
+                            )
                             del driftClientManager
+                        case "zeta_client":
+                            zetaClientManger = ZetaClientManager(network_type)
+                            try:
+                                await zetaClientManger.unsubscribe(client)
+                            except Exception as e:
+                                raise ValueError(
+                                    f"unsubscription failed for {client_type} {network_type} with error: {e}"
+                                )
+                            logger.info(
+                                f"Unsubscribed from {client_type} {network_type}"
+                            )
+                            del zetaClientManger
                         case _:
                             raise ValueError(f"Invalid client type: {client_type}")
     except Exception as e:
-        print(f"Error in clearing internal resources: {e}")
+        logger.error(f"Error in clearing internal resources: {e}", exc_info=True)

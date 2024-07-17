@@ -1,22 +1,24 @@
-from typing import Callable, Optional
-
 from driftpy.drift_client import DriftClient
+from zetamarkets_py.client import Client
 
 from app.constants.networks import Networks
-from app.src.drift.clients.drift_client import DriftClientManager
+from app.src.clients.drift.clients.drift_client import DriftClientManager
+from app.src.clients.zeta.clients.zeta_client import ZetaClientManager
 from app.src.loader.constants import async_clients
+from app.src.logger.logger import logger
 
 
-def register_async_clients(client_type: str, network_type: str):
+def register_async_clients(client_type: str, network_type: str, skip: bool = False):
     def decorator(fn):
-        async_clients[client_type][network_type] = fn
+        if not skip:
+            async_clients[client_type][network_type] = fn
         return fn
 
     return decorator
 
 
 @register_async_clients(client_type="drift_client", network_type="mainnet")
-def set_drift_mainnet_client() -> Optional[DriftClient]:
+def set_drift_mainnet_client() -> DriftClient | None:
     try:
         mainnet_drift_client_object = DriftClientManager(chain_type="mainnet")
         mainnet_drift_client = mainnet_drift_client_object.get_drift_client()
@@ -26,12 +28,12 @@ def set_drift_mainnet_client() -> Optional[DriftClient]:
             )
         return mainnet_drift_client
     except Exception as e:
-        print(f"Error in setting drift client: {e}")
+        logger.error(f"Error in setting drift client: {e}", exc_info=True)
         return None
 
 
-@register_async_clients(client_type="drift_client", network_type="devnet")
-def set_drift_devnet_client() -> Optional[DriftClient]:
+@register_async_clients(client_type="drift_client", network_type="devnet", skip=True)
+def set_drift_devnet_client() -> DriftClient | None:
     try:
         devnet_drift_client_object = DriftClientManager(chain_type="devnet")
         devnet_drift_client = devnet_drift_client_object.get_drift_client()
@@ -41,5 +43,16 @@ def set_drift_devnet_client() -> Optional[DriftClient]:
             )
         return devnet_drift_client
     except Exception as e:
-        print(f"Error in setting drift client: {e}")
+        logger.error(f"Error in setting drift client: {e}", exc_info=True)
+        return None
+
+
+@register_async_clients(client_type="zeta_client", network_type="mainnet")
+def set_zeta_mainnet_client() -> Client | None:
+    try:
+        mainnet_zeta_client_object = ZetaClientManager(chain_type="mainnet")
+        mainnet_zeta_client = mainnet_zeta_client_object.get_zeta_client()
+        return mainnet_zeta_client
+    except Exception as e:
+        logger.error(f"Error in setting zeta client: {e}", exc_info=True)
         return None

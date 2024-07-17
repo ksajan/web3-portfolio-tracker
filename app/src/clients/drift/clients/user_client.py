@@ -10,6 +10,8 @@ from driftpy.drift_user_stats import DriftUserStats, UserStatsSubscriptionConfig
 from solana.rpc.async_api import AsyncClient
 from solders.pubkey import Pubkey  # type: ignore
 
+from app.constants.drift_constants import DriftSubscriptionConfig
+
 
 class DriftUserClientManager:
     def __init__(self, user_pubkey: str, drift_client: DriftClient):
@@ -30,7 +32,8 @@ class DriftUserClientManager:
         self, connection: AsyncClient
     ) -> AccountSubscriptionConfig:
         return AccountSubscriptionConfig(
-            type="polling", bulk_account_loader=self.get_bulk_account_loader(connection)
+            type=DriftSubscriptionConfig.CACHED.value,
+            bulk_account_loader=self.get_bulk_account_loader(connection),
         )
 
     async def get_drift_user_account_client(self, sub_account_id: int = 0) -> DriftUser:

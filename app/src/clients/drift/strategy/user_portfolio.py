@@ -1,30 +1,35 @@
-from typing import List, Optional
-
 from driftpy.constants.numeric_constants import PRICE_PRECISION
 from driftpy.drift_client import DriftClient
 from driftpy.drift_user import BASE_PRECISION, QUOTE_PRECISION, DriftUser
 from driftpy.drift_user_stats import DriftUserStats
 from driftpy.types import PerpPosition, SpotPosition
 
-from app.models.drift_types import (
+from app.constants.common import Symbols
+from app.constants.drift_constants import (
+    DriftPositionComment,
+    DriftPositionType,
+    DriftUserPortfolioCategory,
+)
+from app.models.client_response_types import (
     CustomPerpPosition,
     CustomSpotPosition,
     CustomUnrealizedPnLPosition,
 )
-from app.src.drift.clients.user_client import (
+from app.src.clients.drift.clients.user_client import (
     DriftUserAccountStatsClientManager,
     DriftUserClientManager,
 )
-from app.src.drift.strategy.drift_strategy import DriftStrategy
-from app.src.drift.utils.helper import (
+from app.src.clients.drift.strategy.drift_strategy import DriftStrategy
+from app.src.clients.drift.utils.helper import (
     convert_perp_position_to_response_perp_position,
     convert_spot_position_to_custom_spot_position,
-    filter_fields_for_dataclass,
+    filter_fields_for_pydantic_model,
     update_fields,
 )
+from app.src.logger.logger import logger
 
 
-class UserPortfolio:
+class DriftUserPortfolio:
     def __init__(
         self,
         user_pubkey: str,
@@ -39,6 +44,7 @@ class UserPortfolio:
         )
         self.drift_strategy_object = drift_strategy_object
         self.current_market_data = None
+        self.total_sub_accounts = self.get_user_total_sub_accounts()
 
     async def get_current_market_data(self):
         all_markets = await self.drift_strategy_object.get_markets()
@@ -65,17 +71,30 @@ class UserPortfolio:
                 drift_strategy_object,
             )
         except Exception as e:
-            print(f"Error in UserPortfolio.create: {e}")
+            logger.error(f"Error in UserPortfolio.create: {e}", exc_info=True)
             raise e
 
     def get_user_total_sub_accounts(
         self,
     ) -> int:
-        return (
-            self.drift_user_account_stats_client_manager.get_account().number_of_sub_accounts
-        )
+        try:
+            return (
+                self.drift_user_account_stats_client_manager.get_account().number_of_sub_accounts
+            )
+        except AttributeError as e:
+            logger.warning(
+                f"No sub accounts found for user: {self.user_pubkey}",
+                exc_info=True,
+                extra={"client": "Drift"},
+            )
+            return 0
+        except Exception as e:
+            logger.error(
+                f"Error in getting user total sub accounts: {e}", exc_info=True
+            )
+            return 0
 
-    def get_all_markets(self) -> List:
+    def get_all_markets(self) -> list:
         return self.drift_user_client_manager_object.get_user_account().perp_positions
 
     def get_market_price(
@@ -168,14 +187,14 @@ class UserPortfolio:
 
     async def get_user_perpetual_positions(
         self,
-    ) -> Optional[List[CustomPerpPosition]]:
+    ) -> list[CustomPerpPosition] | None:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
             response = []
-            total_sub_accounts = self.get_user_total_sub_accounts()
-            if total_sub_accounts is not None and total_sub_accounts > 0:
-                for sub_account_id in range(total_sub_accounts):
+            # total_sub_accounts = self.get_user_total_sub_accounts()
+            if self.total_sub_accounts is not None and self.total_sub_accounts > 0:
+                for sub_account_id in range(self.total_sub_accounts):
                     perp_positions = []
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
@@ -202,6 +221,8 @@ class UserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "PERP"
                                 ),
+                                "category": DriftUserPortfolioCategory.BOTH_CATEGORY.value,
+                                "comment": DriftPositionComment.PERP.value,
                             }
                             self.transform_perp_position_values(perp_position)
                             perp_position_transformed = (
@@ -212,13 +233,15 @@ class UserPortfolio:
                             )
                             perp_positions.append(perp_position_transformed.__dict__)
                     response.extend(perp_positions)
-                filtered_data = filter_fields_for_dataclass(
+                filtered_data = filter_fields_for_pydantic_model(
                     response, CustomPerpPosition
                 )
+                if filtered_data is None:
+                    raise Exception("Error in filtering fields for dataclass")
                 return filtered_data
 
         except Exception as e:
-            print(f"Error in getting user positions: {e}")
+            logger.error(f"Error in getting user positions: {e}", exc_info=True)
             return None
 
     def transform_spot_position_values(self, spot_position: SpotPosition):
@@ -239,14 +262,13 @@ class UserPortfolio:
             spot_position, "open_asks", spot_position.open_asks / BASE_PRECISION
         )
 
-    async def get_user_spot_positions(self) -> Optional[List[CustomSpotPosition]]:
+    async def get_user_spot_positions(self) -> list[CustomSpotPosition] | None:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
             response = []
-            total_sub_accounts = self.get_user_total_sub_accounts()
-            if total_sub_accounts is not None and total_sub_accounts > 0:
-                for sub_account_id in range(total_sub_accounts):
+            if self.total_sub_accounts is not None and self.total_sub_accounts > 0:
+                for sub_account_id in range(self.total_sub_accounts):
                     spot_positions = []
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
@@ -272,7 +294,8 @@ class UserPortfolio:
                                 "liquidation_price": self.get_position_liquidation_price(
                                     marketIndex, drift_user_client, "SPOT"
                                 ),
-                                "category": "both",
+                                "category": DriftUserPortfolioCategory.EXPOSURE_CATEGORY.value,
+                                "comment": DriftPositionComment.SPOT.value,
                             }
                             self.transform_spot_position_values(spot_position)
                             spot_position = (
@@ -284,7 +307,7 @@ class UserPortfolio:
                             spot_positions.append(spot_position.__dict__)
 
                     response.extend(spot_positions)
-                filtered_data = filter_fields_for_dataclass(
+                filtered_data = filter_fields_for_pydantic_model(
                     response, CustomSpotPosition
                 )
                 if filtered_data is None:
@@ -292,17 +315,18 @@ class UserPortfolio:
                 return filtered_data
 
         except Exception as e:
-            print(f"Error in getting user positions: {e}")
+            logger.error(f"Error in getting user positions: {e}", exc_info=True)
             return None
 
-    async def get_user_unrealized_pnl(self) -> Optional[CustomUnrealizedPnLPosition]:
+    async def get_user_unrealized_pnl(
+        self,
+    ) -> list[CustomUnrealizedPnLPosition] | None:
         try:
             if self.current_market_data is None:
                 await self.get_current_market_data()
             response = []
-            total_sub_accounts = self.get_user_total_sub_accounts()
-            if total_sub_accounts is not None and total_sub_accounts > 0:
-                for sub_account_id in range(total_sub_accounts):
+            if self.total_sub_accounts is not None and self.total_sub_accounts > 0:
+                for sub_account_id in range(self.total_sub_accounts):
                     unrealized_pnl = 0
                     drift_user_client = await self.drift_user_client_manager_object.get_drift_user_account_client(
                         sub_account_id
@@ -320,12 +344,11 @@ class UserPortfolio:
                                 continue
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
-                                symbol=self.current_market_data.get("perp").get(
-                                    marketIndex
-                                ),
-                                type="perp",
+                                symbol=Symbols.UDSC.value,
+                                type=DriftPositionType.SPOT_TYPE.value,  ## All unrealized pnl is spot type
                                 market_index=marketIndex,
-                                category="both",
+                                category=DriftUserPortfolioCategory.BOTH_CATEGORY.value,
+                                comment=f"Drift UPnL on {self.current_market_data.get('perp').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)
                         for marketIndex in range(
@@ -334,21 +357,21 @@ class UserPortfolio:
                             unrealized_pnl = drift_user_client.get_unrealized_pnl(
                                 market_index=marketIndex
                             )
-                            if unrealized_pnl is None:
+                            if unrealized_pnl is None or unrealized_pnl == 0:
                                 continue
                             custom_unrealized_pnl = CustomUnrealizedPnLPosition(
                                 pnl=unrealized_pnl / PRICE_PRECISION,
-                                symbol=self.current_market_data.get("spot").get(
-                                    marketIndex
-                                ),
-                                type="spot",
+                                symbol=Symbols.UDSC.value,
+                                type=DriftPositionType.SPOT_TYPE.value,
                                 market_index=marketIndex,
+                                category=DriftUserPortfolioCategory.BOTH_CATEGORY.value,
+                                comment=f"Drift UPnL on {self.current_market_data.get('spot').get(marketIndex)}",
                             )
                             response.append(custom_unrealized_pnl.__dict__)
-                filtered_data = filter_fields_for_dataclass(
+                filtered_data = filter_fields_for_pydantic_model(
                     response, CustomUnrealizedPnLPosition
                 )
                 return filtered_data
         except Exception as e:
-            print(f"Error in getting unrealized pnl: {e}")
+            logger.error(f"Error in getting unrealized pnl: {e}", exc_info=True)
             return None

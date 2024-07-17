@@ -1,5 +1,3 @@
-from typing import Optional
-
 from anchorpy import Wallet
 from driftpy.drift_client import DriftClient
 from driftpy.keypair import load_keypair
@@ -9,6 +7,7 @@ from solders.keypair import Keypair  # type: ignore
 import app.src.loader.env_vars as env_vars
 from app.constants.common import DriftEnv
 from app.constants.networks import Networks
+from app.src.logger.logger import logger
 
 SOLANA_DEVNET_RPC_URL = env_vars.SOLANA_DEVNET_RPC_URL
 SOLANA_MAINNET_RPC_URL = env_vars.SOLANA_MAINNET_RPC_URL
@@ -43,15 +42,26 @@ class DriftClientManager:
         return Wallet.dummy()
 
     def get_rpc_connection_client(self) -> AsyncClient:
-        if self.chain_type == self.network_constants.networkTypes.SOLANA_MAINNET.value:
-            return AsyncClient(endpoint=SOLANA_MAINNET_RPC_URL)
-        elif self.chain_type == self.network_constants.networkTypes.SOLANA_DEVNET.value:
-            print("Using devnet", SOLANA_DEVNET_RPC_URL)
-            return AsyncClient(endpoint=SOLANA_DEVNET_RPC_URL)
-        else:
-            raise ValueError(f"Invalid chain type for drift client: {self.chain_type}")
+        try:
+            if (
+                self.chain_type
+                == self.network_constants.networkTypes.SOLANA_MAINNET.value
+            ):
+                return AsyncClient(endpoint=SOLANA_MAINNET_RPC_URL)
+            elif (
+                self.chain_type
+                == self.network_constants.networkTypes.SOLANA_DEVNET.value
+            ):
+                print("Using devnet", SOLANA_DEVNET_RPC_URL)
+                return AsyncClient(endpoint=SOLANA_DEVNET_RPC_URL)
+            else:
+                raise ValueError(
+                    f"Invalid chain type for drift client: {self.chain_type}"
+                )
+        except Exception as e:
+            raise ValueError(f"Error in getting rpc connection client: {e}")
 
-    def get_drift_client(self) -> Optional[DriftClient]:
+    def get_drift_client(self) -> DriftClient | None:
         try:
             connection = self.get_rpc_connection_client()
             wallet = self.get_dummy_wallet()
@@ -62,11 +72,17 @@ class DriftClientManager:
             )
             return drift_client
         except Exception as e:
-            print(f"Error in getting drift client: {e}")
+            logger.error(f"Error in getting drift client: {e}", exc_info=True)
             return None
 
     async def subscribe(self, drift_client: DriftClient) -> None:
-        await drift_client.subscribe()
+        try:
+            await drift_client.subscribe()
+        except Exception as e:
+            raise ValueError(f"Error: {e}")
 
     async def unsubscribe(self, drift_client: DriftClient) -> None:
-        await drift_client.unsubscribe()
+        try:
+            await drift_client.unsubscribe()
+        except Exception as e:
+            raise ValueError(f"Error: {e}")
