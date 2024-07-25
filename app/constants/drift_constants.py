@@ -29,3 +29,10 @@ class DriftPositionComment(Enum):
     PERP = "Drift perp position"
     SPOT = "Drift collateral"
     UNREALIZED = "Drift UPnL"
+
+
+class DriftSubscriptionConfig(Enum):
+    POLLING = "polling"
+    WEBSOCKET = "websocket"
+    CACHED = "cached"
+    DEMO = "demo"
