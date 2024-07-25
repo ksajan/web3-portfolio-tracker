@@ -35,6 +35,15 @@ class TokenBalanceAPI:
                     ),
                 ),
             )
+            print("\n**********\n" + "api response" + "\n**********\n")
+            print(
+                self.http_connector._make_post_request(
+                    url=url,
+                    payload=payload.model_dump(
+                        mode="json", by_alias=True, exclude_none=True
+                    ),
+                )
+            )
             return RpcResponse[AssetList](
                 **self.http_connector._make_post_request(
                     url=url,
@@ -72,7 +81,7 @@ class TokenBalanceAPI:
                     exclude_none=True,
                 ),
             )
-            # print("\n**********\n", response, "\n**********\n")
+            print("\n**********\n", response, "\n**********\n")
             rpc_response = RpcResponse[AssetList](**response)
             if rpc_response.error is not None:
                 raise ValueError(

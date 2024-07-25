@@ -1,6 +1,5 @@
 import asyncio
-
-from fastapi import HTTPException
+from concurrent.futures import ThreadPoolExecutor
 
 from app.constants.error import ClientPositionError
 from app.handler.position import PositionFactory
@@ -31,26 +30,22 @@ class Positions:
         self.zeta_client = clients.zeta_client
         self.helius_client = clients.helius_client
 
-    async def initialize_user_portfolio(self):
+    async def initialize_user_portfolio(self) -> list[str]:
+        errors = []
         if self.drift_client is None:
-            raise HTTPException(
-                status_code=500, detail="Drift client is not initialized"
-            )
+            errors.append("Drift client is not initialized")
         self.user_portfolio = await DriftUserPortfolio.create(
             self.wallet_address, self.drift_client
         )
         if self.zeta_client is None:
-            raise HTTPException(
-                status_code=500, detail="Zeta client is not initialized"
-            )
+            errors.append("Zeta client is not initialized")
         self.zeta_user_portfolio: ZetaUserPortfolio = await ZetaUserPortfolio.create(
             self.wallet_address, self.zeta_client
         )
 
         if self.helius_client is None:
-            raise HTTPException(
-                status_code=500, detail="Helius client is not initialized"
-            )
+            errors.append("Helius client is not initialized")
+        return errors
 
     def get_perp_markets(self):
         perp_markets = self.user_portfolio.get_all_markets()
@@ -337,32 +332,88 @@ class Positions:
             )
             return [], [ClientPositionError.ONCHAIN_POSITIONS_ERROR.value]
 
+    # async def get_all_positions(
+    #     self,
+    # ) -> dict[str, list[ResponsePositionBase] | list[str]]:
+    #     try:
+    #         client_init_errors = await self.initialize_user_portfolio()
+    #         perp_positions, perp_errors = await self.get_all_perp_positions()
+    #         spot_positions, spot_error = await self.get_all_spot_positions()
+    #         unrealized_pnl_positions, upnl_errors = (
+    #             await self.get_all_unrealized_pnl_positions()
+    #         )
+    #         onchain_positions, onchain_positions_errors = (
+    #             self.get_all_onchain_positions()
+    #         )
+    #         filtered_all_positions = self.filter_small_positions(
+    #             positions=perp_positions
+    #             + spot_positions
+    #             + unrealized_pnl_positions
+    #             + onchain_positions
+    #         )
+    #         return {
+    #             "positions": filtered_all_positions,
+    #             "errors": client_init_errors
+    #             + perp_errors
+    #             + spot_error
+    #             + upnl_errors
+    #             + onchain_positions_errors,
+    #         }
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Error in getting positions for wallet: {self.wallet_address} with error: {e}",
+    #             exc_info=True,
+    #         )
+    #         return {
+    #             "positions": [],
+    #             "errors": [ClientPositionError.GENERAL_POSITION_ERROR.value],
+    #         }
+
     async def get_all_positions(
         self,
     ) -> dict[str, list[ResponsePositionBase] | list[str]]:
         try:
-            await self.initialize_user_portfolio()
-            perp_positions, perp_errors = await self.get_all_perp_positions()
-            spot_positions, spot_error = await self.get_all_spot_positions()
-            unrealized_pnl_positions, upnl_errors = (
-                await self.get_all_unrealized_pnl_positions()
-            )
-            onchain_positions, onchain_positions_errors = (
-                self.get_all_onchain_positions()
-            )
+            # Initialize user portfolio
+            client_init_errors = await self.initialize_user_portfolio()
+
+            # Define the executor
+            loop = asyncio.get_running_loop()
+            with ThreadPoolExecutor() as pool:
+                # Gather all async positions concurrently
+                (
+                    (perp_positions, perp_errors),
+                    (spot_positions, spot_error),
+                    (unrealized_pnl_positions, upnl_errors),
+                    (onchain_positions, onchain_positions_errors),
+                ) = await asyncio.gather(
+                    self.get_all_perp_positions(),
+                    self.get_all_spot_positions(),
+                    self.get_all_unrealized_pnl_positions(),
+                    loop.run_in_executor(pool, self.get_all_onchain_positions),
+                )
+
+            # Filter the positions
             filtered_all_positions = self.filter_small_positions(
                 positions=perp_positions
                 + spot_positions
                 + unrealized_pnl_positions
                 + onchain_positions
             )
-            return {
-                "positions": filtered_all_positions,
-                "errors": perp_errors
+
+            # Combine errors
+            errors = (
+                client_init_errors
+                + perp_errors
                 + spot_error
                 + upnl_errors
-                + onchain_positions_errors,
+                + onchain_positions_errors
+            )
+
+            return {
+                "positions": filtered_all_positions,
+                "errors": errors,
             }
+
         except Exception as e:
             logger.error(
                 f"Error in getting positions for wallet: {self.wallet_address} with error: {e}",
@@ -370,5 +421,5 @@ class Positions:
             )
             return {
                 "positions": [],
-                "errors": [ClientPositionError.GENERAL_POSITION_ERROR.value],
+                "errors": [ClientPositionError.GENERAL_POSITION_ERROR],
             }
